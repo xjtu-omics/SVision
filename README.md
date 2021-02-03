@@ -5,7 +5,7 @@ SVision is a deep learning-based structural variants caller that takes aligned r
 <img src="https://github.com/xjtu-omics/SVision/blob/master/supports/workflow.png" alt="SVision workflow" align=center/>
 
 
-Please check the wiki page for more details. 
+Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more details. 
 
 
 ## Install and run
