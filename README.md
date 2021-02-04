@@ -79,7 +79,7 @@ Adding internal breakpoints refine module.
 2. Adding breakpoint left shift operation
 3. Fixing bug while distinguish major and minor segments at src/analyze_reads.py line 20
 
-2020.7.20 (v1.0.3)
+**V1.0.3**
 
 Adding log file in the output
 
