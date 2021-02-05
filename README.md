@@ -1,4 +1,4 @@
-![SVision](https://github.com/xjtu-omics/SVision/blob/master/supports/svision-logo.png)
+<img src="https://github.com/xjtu-omics/SVision/blob/master/supports/svision-logo.png" alt="svision_logo" width="40%" height="40%" align=center/>
 
 ## SVision
 
