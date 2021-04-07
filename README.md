@@ -19,8 +19,10 @@ conda create -n svision-env python=3.6
 ```
 step2: Install basic packages
 ```
-conda install -c anaconda scipy, pysam, numpy， beautifulsoup
+conda install -c anaconda scipy, pysam, numpy, beautifulsoup
 ```
+
+Please install numpy=1.16.4 to avoid feature warnings raised by tensorflow
 
 Step3: Install deep-learning related packages
 
@@ -83,9 +85,6 @@ Adding internal breakpoints refine module.
 2. Adding breakpoint left shift operation
 3. Fixing bug while distinguish major and minor segments at src/analyze_reads.py line 20
 
-**V1.0.3**
-
-Adding log file in the output
 
 ## Contact
-If you have any questions, please feel free to contact: jiadong324@gmail.com, songbowang125@163.com
+If you have any questions, please feel free to contact: jiadonglin324@163.com, songbowang125@163.com
