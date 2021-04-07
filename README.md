@@ -17,18 +17,21 @@ Step1: Create a python environment with conda
 ```
 conda create -n svision-env python=3.6
 ```
+step2: Install basic packages
+```
+conda install -c anaconda scipy, pysam, numpy， beautifulsoup
+```
 
-Step2: Install required packages:
+Step3: Install deep-learning related packages
 
 ```
-conda install pysam
+conda install -c conda-forge opencv
 conda install tensorflow
-conda install opencv-python
 ```
-Step3: Install from source code
+Step4: Install from source code
 
 ```
-git clone https://github.com/songbowang125/SVision.git
+git clone https://github.com/xjtu-omics/SVision.git
 cd SVision
 python setup.py install
 ```
