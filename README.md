@@ -9,6 +9,11 @@ SVision is a deep learning-based structural variants caller that takes aligned r
 Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more details. 
 
 
+## License
+
+SVision is free for non-commercial use by academic, government, and non-profit/not-for-profit institutions. A commercial version of the software is available and licensed through Xi’an Jiaotong University. 
+For more information, please contact with Jiadong Lin (jiadong324@stu.xjtu.edu.cn) or Kai Ye (kaiye@xjtu.edu.cn).
+
 ## Install and run
 
 ### Install from source
