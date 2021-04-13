@@ -15,7 +15,8 @@ setup(
       long_description=long_description,
 
       url='https://github.com/xjtu-omics/SVision',
-      download_url = 'https://github.com/xjtu-omics/SVision/archive/refs/tags/v1.2.1-beta.tar.gz',
+      # download_url = 'https://github.com/xjtu-omics/SVision/archive/refs/tags/v1.2.2-beta.tar.gz',
+
       author='Jiadong Lin, Songbo Wang',
       author_email='jiadong66@stu.xjtu.edu.cn, songbowang125@163.com',
 
