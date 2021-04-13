@@ -6,51 +6,32 @@ SVision is a deep learning-based structural variants caller that takes aligned r
 <img src="https://github.com/xjtu-omics/SVision/blob/master/supports/workflow.png" alt="SVision workflow" width="60%" height="60%" align=center/>
 
 
-Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more details. 
-
-
 ## License
 
 SVision is free for non-commercial use by academic, government, and non-profit/not-for-profit institutions. A commercial version of the software is available and licensed through Xi’an Jiaotong University. 
 For more information, please contact with Jiadong Lin (jiadong324@stu.xjtu.edu.cn) or Kai Ye (kaiye@xjtu.edu.cn).
 
-## Install and run
-
-### Install from PyPI
+## Install
 
 Step1: Create a python environment with conda
 
 ```
 conda create -n svision-env python=3.6
 ```
-Step2: Install deep-learning related packages
+Step2: Install required packages of specific versions
 
 ```
+conda install -c anaconda pysam==0.16.0
 conda install -c conda-forge opencv==4.5.1
 conda install -c conda-forge tensorflow==1.14.0
 ```
-
-
-### Install from source
-Step1: Create a python environment with conda
+Step3: Install SVision from PyPI
 
 ```
-conda create -n svision-env python=3.6
-```
-step2: Install basic packages
-```
-conda install -c anaconda scipy, pysam, numpy, beautifulsoup4
+pip install SVision
 ```
 
-Please install numpy=1.16.4 to avoid feature warnings raised by tensorflow
-
-Step3: Install deep-learning related packages
-
-```
-conda install -c conda-forge opencv==4.5.1
-conda install -c conda-forge tensorflow==1.14.0
-```
-Step4: Install from source code
+(Optional) Install from source code
 
 ```
 git clone https://github.com/xjtu-omics/SVision.git
@@ -58,47 +39,58 @@ cd SVision
 python setup.py install
 ```
 
-### Usage
+## Usage
 
 ```
 SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>
 ```
 
-## Change Logs
+Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more usage details. 
 
-**V1.2.1**
+#### Input/output parameters
 
-Fixing insertion length for detailed breakpoints.
+```
+-o OUT_PATH           Absolute path to output
+-b BAM_PATH           Absolute path to bam file
+-m MODEL_PATH         Absolute path to CNN predict model
+-g GENOME             Absolute path to your reference genome (.fai required in the directory)
+-n SAMPLE             Name of the BAM sample name
+```
 
-**V1.2**
+```-g``` path to the reference genome, the index file should under the same directory.
 
-1. Adding function for calling from minimap2 aligned BAM, where CIGAR operator is different from NGMRL.
-2. Adding Graph representation for detected complex structural variants.
-3. Adding a prameter for detecting from contig aligned BAMs.
+```-m``` path to the pre-trained deep learning model, which is available at https://drive.google.com/drive/folders/1j74IN6kPKEx9hy3aENx3zHYPUnyYWGvj?usp=sharing.
 
-**V1.1.6**
+#### General parameters
+```
+-t THREAD_NUM         Thread numbers [1]
+-s MIN_SUPPORT        Min support read number for an SV [1]
+-c CHROM              Specific region to detect, format: chr1:xxx-xxx or 1:xxx-xxx
+--hash_table          Activate hash table to align unmapped sequences
+--cluster_callset     Cluster original callset to merge uncovered event
+--report_mechanism    Report mechanisms for DEL event
+--report_graph        Report graph for events
+--contig              Activate contig mode
+```
 
-1. Making changes to the formation mechanism inference module.
-2. Adding GT, DV and DF to the standard VCF output.
+```--hash_table``` enables the image subtraction process, which is activated by default. 
 
-**V1.1.5**
+```--report_graph``` enables the program to create the CSV graph in GFA format, which is not activated by default. 
 
-Fixed bug: The function process_cigars() in collect_signatures.py affect the breakpoints' precision of short (about 50bp) DEL and INS.
+```--report_mechanism``` is used to infer the formation mechansim according to the breakpoint sequence features. 
+This is still underdevelopment, which is not recommended to use for current version.
 
-**V1.1.4**
+```--contig``` is used for calling from assemblies, which currently uses minimap2 aligned BAM file as input.
 
-Adding a SV formation mechanism inference module.
+#### Other parameters
 
-**V1.1.3**
+```--partition_max_distsance``` maximum distance allowed of a group of feature sequences.
 
-Adding internal breakpoints refine module.
+```--cluster_max_distance``` maximum distance for feature sequence clustering. This is implemented via Scipy hierarchical clustering.
 
-**V1.1.2**
+```--k_size``` size of kmer used in hash-table realignment, only used when ```--hash_table``` is activated.
 
-1. Fixing bug while processing alternative contigs, such as chrUn_JTFH01001938v1_decoy
-2. Adding breakpoint left shift operation
-3. Fixing bug while distinguish major and minor segments at src/analyze_reads.py line 20
-
+```--min_accept``` minimum matched segment length, default is 50bp.
 
 ## Contact
 If you have any questions, please feel free to contact: jiadonglin324@163.com, songbowang125@163.com

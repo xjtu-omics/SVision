@@ -34,7 +34,7 @@ setup(
 
       zip_safe=False,
       python_requires='>=3.6',
-      install_requires=['scipy', 'pysam', 'beautifulsoup4', 'numpy==1.16'],
+      install_requires=['scipy', 'beautifulsoup4', 'numpy==1.16'],
       scripts=['SVision.py'],
 
       entry_points={'console_scripts': ['SVision=SVision:main']}
