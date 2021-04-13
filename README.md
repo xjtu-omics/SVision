@@ -16,6 +16,21 @@ For more information, please contact with Jiadong Lin (jiadong324@stu.xjtu.edu.c
 
 ## Install and run
 
+### Install from PyPI
+
+Step1: Create a python environment with conda
+
+```
+conda create -n svision-env python=3.6
+```
+Step2: Install deep-learning related packages
+
+```
+conda install -c conda-forge opencv==4.5.1
+conda install -c conda-forge tensorflow==1.14.0
+```
+
+
 ### Install from source
 Step1: Create a python environment with conda
 
@@ -24,7 +39,7 @@ conda create -n svision-env python=3.6
 ```
 step2: Install basic packages
 ```
-conda install -c anaconda scipy, pysam, numpy, beautifulsoup
+conda install -c anaconda scipy, pysam, numpy, beautifulsoup4
 ```
 
 Please install numpy=1.16.4 to avoid feature warnings raised by tensorflow
@@ -32,8 +47,8 @@ Please install numpy=1.16.4 to avoid feature warnings raised by tensorflow
 Step3: Install deep-learning related packages
 
 ```
-conda install -c conda-forge opencv
-conda install tensorflow
+conda install -c conda-forge opencv==4.5.1
+conda install -c conda-forge tensorflow==1.14.0
 ```
 Step4: Install from source code
 
@@ -43,17 +58,11 @@ cd SVision
 python setup.py install
 ```
 
-### Install from Anaconda
-
-To be continue ...
-
-
 ### Usage
 
 ```
 SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>
 ```
-
 
 ## Change Logs
 
