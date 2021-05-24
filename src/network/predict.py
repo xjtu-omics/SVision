@@ -24,11 +24,13 @@ class Predict:
         # How often we want to write the tf.summary data to disk
         self.display_step = 1
 
-    def stats_sv_predicts(self, reads_dict):
+    def get_region_potential_svtypes(self, reads_dict):
         """
-        stats sv predict results
+        stats sv types from predict results
 
-        :param reads_dict: format: {read_id: [svtype, [bkp_start, bkp_end, bkp_len]}
+        :param reads_dict: format (allow same predicted types): {read_id: [(svtype, (bkp_start, bkp_end, bkp_len))]}
+                                # e.g {'1': [(1, (859987, 859988, 2389)), (4, (857598, 859987, 2389))], '2': [(1, (859987, 859988, 2388)), (4, (857623, 859987, 2364))]}
+                         format (not allow same predicted types): {read_id: [svtype, [bkp_start, bkp_end, bkp_len]}
                                 # e.g {'1': {1: [906269, 906270, 200], 4: [905711, 906269, 200]}, '2': {1: [906281, 906282, 200]}}
         :return:
             sv_stats, format: [(type, support_read_id, avg_bkps), ()...]
@@ -36,21 +38,63 @@ class Predict:
 
         """
 
+        # # allow same predicted types
+        # stats = {}
+        #
+        # for read_id, sv_type_infos in reads_dict.items():
+        #     sv_type_infos_srt_by_svtype = sorted(sv_type_infos, key=lambda x: x[0])
+        #     read_final_svtype = ''.join([str(sv_info[0]) for sv_info in sv_type_infos_srt_by_svtype])
+        #
+        #     # meet a new final_svtype, collect each subtype's bkps and push to stats
+        #     if read_final_svtype not in stats.keys():
+        #
+        #         new_bkps = []
+        #         for i in range(len(read_final_svtype)):
+        #             new_bkps.append(sv_type_infos_srt_by_svtype[i][1])
+        #         stats[read_final_svtype] = [[read_id], new_bkps]
+        #
+        #     # meet a already_in final_svtype, calculate avg bkps and
+        #     else:
+        #
+        #         new_bkps = []
+        #         for i in range(len(read_final_svtype)):
+        #             new_bkps.append(sv_type_infos_srt_by_svtype[i][1])
+        #
+        #         old_bkps = stats[read_final_svtype][1]
+        #         old_read_num = len(stats[read_final_svtype][0])
+        #
+        #         # # calculate avg bkps
+        #         avg_bkps = []
+        #
+        #         for i in range(len(new_bkps)):
+        #
+        #             # when meet a same svtype, calculate the avg bkps
+        #             start_avg = int((new_bkps[i][0] + old_bkps[i][0] * old_read_num) / (old_read_num + 1))
+        #             end_avg = int((new_bkps[i][1] + old_bkps[i][1] * old_read_num) / (old_read_num + 1))
+        #             len_avg = int((new_bkps[i][2] + old_bkps[i][2] * old_read_num) / (old_read_num + 1))
+        #
+        #             avg_bkps.append([start_avg, end_avg, len_avg])
+        #
+        #
+        #         stats[read_final_svtype][0].append(read_id)
+        #         stats[read_final_svtype][1] = avg_bkps
+
+        # # not allow same predicted types
         stats = {}
 
-        for read_id, sv_type_info in reads_dict.items():
-            sv_type_str = ''.join(str(i) for i in sorted(sv_type_info.keys()))
+        for read_id, sv_type_infos in reads_dict.items():
+            sv_type_str = ''.join(str(i) for i in sorted(sv_type_infos.keys()))
             if sv_type_str not in stats.keys():
 
                 new_bkps = []
                 for i in range(len(sv_type_str)):
-                    new_bkps.append(sv_type_info[int(sv_type_str[i])])
+                    new_bkps.append(sv_type_infos[int(sv_type_str[i])])
                 stats[sv_type_str] = [[read_id], new_bkps]
             else:
 
                 new_bkps = []
                 for i in range(len(sv_type_str)):
-                    new_bkps.append(sv_type_info[int(sv_type_str[i])])
+                    new_bkps.append(sv_type_infos[int(sv_type_str[i])])
 
                 old_bkps = stats[sv_type_str][1]
                 old_read_num = len(stats[sv_type_str][0])
@@ -66,42 +110,35 @@ class Predict:
 
                     avg_bkps.append([start_avg, end_avg, len_avg])
 
-                    # print('-', new_bkps[i][0], old_bkps[i][0], old_read_num, start_avg)
-                    # print('-', new_bkps[i][1], old_bkps[i][1], old_read_num, end_avg)
-
-                # print(old_read_num, new_bkps, old_bkps, avg_bkps)
-
                 stats[sv_type_str][0].append(read_id)
                 stats[sv_type_str][1] = avg_bkps
 
-        # print(stats.items())
+
         stats = sorted(stats.items(), key=lambda x: len(x[1][0]), reverse=True)
-        # print(stats)
-        # exit()
         sv_stats = []
 
-        # convert type id to type string
+        # convert type id to type string: 123 -> DEL+INS+INV
         for j in range(len(stats)):
-            sv_type_info, sv_info = stats[j]
+            sv_type_infos, sv_info = stats[j]
             support_read_ids = sv_info[0]
             bkps = sv_info[1]
 
-            sv_type_str = ""
-            for i in range(len(sv_type_info)):
+            read_final_svtype = ""
+            for i in range(len(sv_type_infos)):
                 if i is not 0:
-                    sv_type_str += "+"
+                    read_final_svtype += "+"
 
-                if sv_type_info[i] == '0':
-                    sv_type_str += "DEL"
-                elif sv_type_info[i] == '1':
-                    sv_type_str += "INS"
-                elif sv_type_info[i] == '2':
-                    sv_type_str += "INV"
-                elif sv_type_info[i] == '3':
-                    sv_type_str += "DUP"
-                elif sv_type_info[i] == '4':
-                    sv_type_str += "tDUP"
-            sv_stats.append((sv_type_str, support_read_ids, bkps))
+                if sv_type_infos[i] == '0':
+                    read_final_svtype += "DEL"
+                elif sv_type_infos[i] == '1':
+                    read_final_svtype += "INS"
+                elif sv_type_infos[i] == '2':
+                    read_final_svtype += "INV"
+                elif sv_type_infos[i] == '3':
+                    read_final_svtype += "DUP"
+                elif sv_type_infos[i] == '4':
+                    read_final_svtype += "tDUP"
+            sv_stats.append((read_final_svtype, support_read_ids, bkps))
 
         return sv_stats
 
@@ -166,15 +203,16 @@ class Predict:
 
             for _ in range(val_batches_per_epoch):
                 batch_px, batch_py = batch_generator.next_batch(batch_size)
-                # exit()
+                # # predict
                 score_value, predict_value, softmax_value = sess.run([score, tf.argmax(score, 1), tf.nn.softmax(score)],
                                                                      feed_dict={x: batch_px, keep_prob: self.dropout_rate})
 
-
+                # # parse predict results
                 for i in range(len(batch_py)):
                     if 'complement' in batch_py[i]:
                         continue
 
+                    # parse batch info
                     split_item = batch_py[i].split('svision')
                     read_num = split_item[0]
                     region = split_item[1]
@@ -191,13 +229,11 @@ class Predict:
                         continue
                     # # End ADD
 
-
-                    # write region to file
+                    # meet a new region, then write region to file
                     if region != last_region:
                         if last_region != "":
-
-                            sv_stats = self.stats_sv_predicts(reads_dict)
-                            write_results_to_vcf(out_vcf_file, out_score_file, sv_stats, last_region, read_num_name_pair, sig_types, sig_score_pair, predict_scores, sig_mechanisms_pair, options)
+                            region_potential_svtypes = self.get_region_potential_svtypes(reads_dict)
+                            write_results_to_vcf(out_vcf_file, out_score_file, region_potential_svtypes, last_region, read_num_name_pair, sig_types, sig_score_pair, predict_scores, sig_mechanisms_pair, options)
 
                         last_region = region
                         reads_dict = {}
@@ -215,6 +251,26 @@ class Predict:
                     sig_mechanisms_pair[read_num.replace('m', '')] = mechanism
 
                     # only main segs can be predicted to ins or del
+                    # # allow same predicted types
+                    # if "m" not in read_num:
+                    #     if predict_value[i] == 0 or predict_value[i] == 1:
+                    #         continue
+                    #     else:
+                    #         # if meet a new read
+                    #         if read_num not in reads_dict.keys():
+                    #             reads_dict[read_num] = [[predict_value[i], [bkp_start, bkp_end, bkp_len]]]
+                    #         else:
+                    #             reads_dict[read_num].append([predict_value[i], [bkp_start, bkp_end, bkp_len]])
+                    #
+                    # else:
+                    #     read_num = read_num.replace('m', '')
+                    #     # read_num = batch_py[i]
+                    #     if read_num not in reads_dict.keys():
+                    #         reads_dict[read_num] = [[predict_value[i], [bkp_start, bkp_end, bkp_len]]]
+                    #     else:
+                    #         reads_dict[read_num].append([predict_value[i], [bkp_start, bkp_end, bkp_len]])
+
+                    # # not allow same predicted types
                     if "m" not in read_num:
                         if predict_value[i] == 0 or predict_value[i] == 1:
                             continue
@@ -233,9 +289,10 @@ class Predict:
                         else:
                             reads_dict[read_num][predict_value[i]] = [bkp_start, bkp_end, bkp_len]
 
+
                 # break
             # meet the end
-            sv_stats = self.stats_sv_predicts(reads_dict)
-            write_results_to_vcf(out_vcf_file, out_score_file, sv_stats, last_region, read_num_name_pair, sig_types, sig_score_pair, predict_scores, sig_mechanisms_pair, options)
+            region_potential_svtypes = self.get_region_potential_svtypes(reads_dict)
+            write_results_to_vcf(out_vcf_file, out_score_file, region_potential_svtypes, last_region, read_num_name_pair, sig_types, sig_score_pair, predict_scores, sig_mechanisms_pair, options)
 
         out_vcf_file.close()

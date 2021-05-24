@@ -335,9 +335,10 @@ def merge_split_vcfs(in_dir, merged_vcf_path, ref_path, max_score, min_score):
 
 
 def refine_type(original_type, original_bkps, options):
+
     """
     Refine original sv type by detailed bkps, primarily about:
-    remove ins if ins_len is equal to dup_len; refind tdup to dup
+    remove ins if ins_len is equal to dup_len; refind dup to tdup
     :param original_type:
     :param original_bkps:
     :param options:
@@ -345,7 +346,7 @@ def refine_type(original_type, original_bkps, options):
     """
 
     refined_type = []
-
+    refined_bkps = []
     if 'INS' in original_type and 'tDUP' in original_type and 'DUP' not in original_type:
         ins_len = 0
         dup_len = 0
@@ -354,11 +355,25 @@ def refine_type(original_type, original_bkps, options):
                 ins_len += int(original_bkps[i][2])
             elif original_type[i] == 'tDUP':
                 dup_len += int(original_bkps[i][2])
+
+        # check if ins_len is larger to dup_len
         if ins_len - dup_len > options.min_sv_size:
+            # yes, means there is indeed a INS, so we keep the original svtype and bkps
             refined_type = original_type
+            refined_bkps = original_bkps
+
+            # update ins's length to ins_len - dup_len
+            new_ins_len = ins_len - dup_len
+            for i in range(len(refined_type)):
+                if refined_type[i] == 'INS':
+                    refined_bkps[i][2] = new_ins_len
+                    break
         else:
+            # no, means there is no novel INS, so we remove 'INS' from svtype and bkps
             refined_type = [i for i in original_type if i != 'INS']
-        return refined_type
+            refined_bkps = [original_bkps[i] for i in range(len(original_type)) if original_type[i] != 'INS']
+
+        return refined_type, refined_bkps
 
     elif 'INS' in original_type and 'DUP' in original_type and 'tDUP' not in original_type:
         ins_len = 0
@@ -377,11 +392,24 @@ def refine_type(original_type, original_bkps, options):
                     if abs(ins_pos - dup_end) < 10:
                         original_type[i] = 'tDUP'
 
+        # check if ins_len is larger to dup_len
         if ins_len - dup_len > options.min_sv_size:
+            # yes, means there is indeed a INS, so we keep the original svtype and bkps
             refined_type = original_type
+            refined_bkps = original_bkps
+
+            # update ins's length to ins_len - dup_len
+            new_ins_len = ins_len - dup_len
+            for i in range(len(refined_type)):
+                if refined_type[i] == 'INS':
+                    refined_bkps[i][2] = new_ins_len
+                    break
         else:
+            # no, means there is no novel INS, so we remove 'INS' from svtype and bkps
             refined_type = [i for i in original_type if i != 'INS']
-        return refined_type
+            refined_bkps = [original_bkps[i] for i in range(len(original_type)) if original_type[i] != 'INS']
+
+        return refined_type, refined_bkps
 
     elif 'INS' in original_type and 'DUP' in original_type and 'tDUP' in original_type:
         ins_len = 0
@@ -401,17 +429,31 @@ def refine_type(original_type, original_bkps, options):
                     if abs(ins_pos - dup_end) < 10:
                         original_type[i] = 'tDUP'
 
+        # check if ins_len is larger to dup_len
         if ins_len - dup_len > options.min_sv_size:
+            # yes, means there is indeed a INS, so we keep the original svtype and bkps
             refined_type = original_type
+            refined_bkps = original_bkps
+
+            # update ins's length to ins_len - dup_len
+            new_ins_len = ins_len - dup_len
+            for i in range(len(refined_type)):
+                if refined_type[i] == 'INS':
+                    refined_bkps[i][2] = new_ins_len
+                    break
         else:
+            # no, means there is no novel INS, so we remove 'INS' from svtype and bkps
             refined_type = [i for i in original_type if i != 'INS']
-        return refined_type
+            refined_bkps = [original_bkps[i] for i in range(len(original_type)) if original_type[i] != 'INS']
+
+        return refined_type, refined_bkps
+
     else:
-        return original_type
+        return original_type, original_bkps
 
-def write_results_to_vcf(vcf_out, score_out, sv_stats, region, read_num_name_pair, sig_types, sig_score_pair, predict_scores, sig_mechanisms_pair, options):
+def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, read_num_name_pair, sig_types, sig_score_pair, predict_scores, sig_mechanisms_pair, options):
 
-    if len(sv_stats) > 0:
+    if len(region_potential_svtypes) > 0:
 
 
         avg_predict_score = (1 - round(np.mean(predict_scores), 2)) * 100
@@ -430,7 +472,9 @@ def write_results_to_vcf(vcf_out, score_out, sv_stats, region, read_num_name_pai
         coverage = int(region_split[3])
         length = end - start
 
-        for sv in sv_stats:
+        # # collect each sv's info
+        for sv in region_potential_svtypes:
+            # print(sv)
             sv_type = sv[0]
             sv_num = len(sv[1])
             sv_bkps = sv[2]
@@ -441,6 +485,7 @@ def write_results_to_vcf(vcf_out, score_out, sv_stats, region, read_num_name_pai
 
             # save this sv's info
             all_sv_types.append(sv_type)
+
             all_support_num.append(str(sv_num))
             all_vaf.append(str(vaf))
             all_sv_bkps.append(sv_bkps)
@@ -466,7 +511,24 @@ def write_results_to_vcf(vcf_out, score_out, sv_stats, region, read_num_name_pai
             filter_type = 'Covered'
 
 
-
+        # final_svtypes = {}
+        # # # refine svtypes
+        # for i in range(len(all_sv_types)):
+        #     original_type = all_sv_types[i].split('+')
+        #
+        #     # # svision v1.2.1 Add.
+        #     # refine sv type
+        #     refined_type = refine_type(original_type, all_sv_bkps[i], options)
+        #
+        #     if refined_type not in final_svtypes.keys():
+        #         final_svtypes[refined_type] = [i]
+        #     else:
+        #         final_svtypes[refined_type].extend(i)
+        #
+        # print(final_svtypes)
+        #
+        # """"""""""""""""""""""""""""""""""""""""""""""""""done here
+        # # write each sv to file
         for i in range(len(all_sv_types)):
             # create INFO
             svtype_info = "SVTYPE=" + all_sv_types[i]
@@ -495,28 +557,31 @@ def write_results_to_vcf(vcf_out, score_out, sv_stats, region, read_num_name_pai
                 else:
                     svreads_info += ',' + read_name
 
-            split_types = all_sv_types[i].split('+')
-            for j in range(len(all_sv_bkps[i])):
-                if j == 0:
-                    svbkps_info += split_types[j] + ':' + str(all_sv_bkps[i][j][2]) + '-' + str(all_sv_bkps[i][j][0]) + '-' + str(all_sv_bkps[i][j][1])
-                else:
-                    svbkps_info += ',' + split_types[j] + ':' + str(all_sv_bkps[i][j][2]) + '-' + str(all_sv_bkps[i][j][0]) + '-' + str(all_sv_bkps[i][j][1])
-
 
             # calculate sv score
             sv_score_std = np.std([int(score) for score in svsig_scores]) / int(all_support_num[i])
             sum_score = min(100, (sv_score_std + avg_predict_score))
 
-            # classify SV to SV or CSV
-            original_type = all_sv_types[i].split('+')
 
             # # svision v1.2.1 Add.
             # refine sv type
-            refined_type = refine_type(original_type, all_sv_bkps[i], options)
+            original_type = all_sv_types[i].split('+')
+            original_bkps = all_sv_bkps[i]
+            refined_type, refined_bkps = refine_type(original_type, original_bkps, options)
+            # print(original_type, 'to', refined_type, original_bkps, refined_bkps)
+
+
+            for j in range(len(refined_type)):
+                if j == 0:
+                    svbkps_info += refined_type[j] + ':' + str(refined_bkps[j][2]) + '-' + str(refined_bkps[j][0]) + '-' + str(refined_bkps[j][1])
+                else:
+                    svbkps_info += ',' + refined_type[j] + ':' + str(refined_bkps[j][2]) + '-' + str(refined_bkps[j][0]) + '-' + str(refined_bkps[j][1])
+
             svtype_info = "SVTYPE=" + '+'.join(refined_type)
             # End Add
 
             # SVision v1.1.1 Modify.
+            # classify SV to SV or CSV
             if len(refined_type) >= 2:
                 new_type = '<CSV>'
             else:

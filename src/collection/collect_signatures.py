@@ -130,9 +130,6 @@ def analyze_alignments(aligns, bam, options, part_num):
     reads_dict = {}
     for align in aligns:
 
-        # if align.qname not in ['m54329U_190629_180018/78446969/ccs']:
-        #     continue
-
         # # no cigar, then pass this align
         if align.cigarstring == None:
             continue
@@ -235,7 +232,7 @@ def analyze_alignments(aligns, bam, options, part_num):
 
             graph = None
             if options.report_graph is True:
-                graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome)
+                graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
             sig = analyze_gap(current_align, next_align, bam, options)
             if sig is not None:
 
@@ -253,7 +250,7 @@ def analyze_alignments(aligns, bam, options, part_num):
 
                 graph = None
                 if options.report_graph is True:
-                    graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome)
+                    graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
                 sig = analyze_gap(current_align, next_align, bam, options)
                 if sig is not None:
                     sig.set_graph(graph)
@@ -267,7 +264,7 @@ def analyze_alignments(aligns, bam, options, part_num):
 
                 graph = None
                 if options.report_graph is True:
-                    graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome)
+                    graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
                 sig = analyze_gap(current_align, next_align, bam, options)
                 if sig is not None:
                     sig.set_graph(graph)
@@ -297,9 +294,9 @@ def analyze_alignments(aligns, bam, options, part_num):
                     graph = None
                     if options.report_graph is True:
                         if i != len(all_main_align) - 1 - 1:
-                            graph = generate_graph(current_align, next_align, help_aligns, options.min_sv_size, whole_read_seq, options.genome, False)
+                            graph = generate_graph(current_align, next_align, help_aligns.copy(), options.min_sv_size, whole_read_seq, options.genome, qname, False)
                         else:
-                            graph = generate_graph(current_align, next_align, help_aligns, options.min_sv_size, whole_read_seq, options.genome)
+                            graph = generate_graph(current_align, next_align, help_aligns.copy(), options.min_sv_size, whole_read_seq, options.genome, qname)
 
                     sig = analyze_gap(current_align, next_align, bam, options, help_aligns)
                     if sig is not None:

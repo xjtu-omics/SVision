@@ -1,6 +1,6 @@
 import pysam
 import os
-
+import shutil
 
 class Node:
     def __init__(self, chr, ref_start, ref_end, read_start, read_end, seq, is_reverse, id, host):
@@ -23,11 +23,12 @@ class Node:
     def add_depth(self, num):
         self.depth += num
 
-    def set_dup_node(self, dup_from):
+    def set_dup_node(self, dup_from, dup_from_cord):
         if dup_from != -1:
 
             self.node_is_dup = True
             self.dup_from = dup_from
+            self.dup_from_cord = dup_from_cord
 
     def to_string(self):
         if self.node_is_dup:
@@ -57,12 +58,44 @@ class Edge:
 
 
 class Graph:
-    def __init__(self, nodes, edges):
+    def __init__(self, nodes, edges, qname=""):
         self.nodes = nodes
         self.edges = edges
 
         self.appear_time = 1
 
+        self.qname = qname
+
+
+def classify_graphs(graphs):
+    """
+    compare graphs, find those same graphs
+    :param graphs:
+    :return:
+    """
+
+    final_graphs = [graphs[0]]
+
+    for i in range(1, len(graphs)):
+        graph = graphs[i]
+
+        same_flags = []
+        # compare each target graph in final_graphs
+        for target_graph in final_graphs:
+            # different from target_graph, then we set flag to 0
+            if graph_is_same_as(graph, target_graph, strict=True) == False:
+                same_flags.append(0)
+            else:
+                same_flags.append(1)
+        # no same flags, then we find a new graph
+        if 1 not in same_flags:
+            final_graphs.append(graph)
+        else:
+            for i in range(len(same_flags)):
+                if same_flags[i] == 1:
+                    final_graphs[i].appear_time += 1
+
+    return sorted(final_graphs, key=lambda g: g.appear_time, reverse=True)
 
 
 def parse_gfa_file(gfa_path):
@@ -80,12 +113,15 @@ def parse_gfa_file(gfa_path):
                 if len(line_split) == 8:
                     node_is_dup = True
                     dup_from = line_split[7].split(':')[2]
+                    dup_from_cord = int(line_split[7].split(':')[3])
+
                 else:
                     node_is_dup = False
                     dup_from = -1
+                    dup_from_cord = -1
 
-                node = Node(-1, -1, -1, -1, -1, -1, False, node_id, node_host)
-                node.set_dup_node(dup_from)
+                node = Node(-1, node_start, -1, node_start, -1, node_seq, False, node_id, node_host)
+                node.set_dup_node(dup_from, dup_from_cord)
                 nodes.append(node)
             elif line_split[0] == 'L':
                 edge_node1 = line_split[1]
@@ -98,6 +134,35 @@ def parse_gfa_file(gfa_path):
                 pass
 
     return Graph(nodes, edges)
+
+
+def write_graph_to_file(graph, graph_out_file):
+    """
+    write graphs to file
+    :param cluster_graph_path:
+    :param graphs:
+    :return:
+    """
+
+    nodes = graph.nodes
+    edges = graph.edges
+
+    # # output
+    with open(graph_out_file, 'w') as fout:
+        for node in nodes:
+            node_seq = node.seq if node.seq is not "" else 'N'
+            if 'I' in node.id:
+                if node.node_is_dup == True:
+                    fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\tDP:S:{5}:{6}\n".format(node.id, node_seq, node.host, node.read_start, len(node_seq), node.dup_from, node.dup_from_cord))
+                else:
+                    fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\n".format(node.id, node_seq, node.host, node.read_start, len(node_seq)))
+            else:
+                fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\n".format(node.id, node_seq, node.host, node.ref_start, len(node_seq)))
+
+        for edge in edges:
+            fout.write("L\t{0}\t{1}\t{2}\t{3}\t0M\tSR:i:0\n".format(edge.node1, '-' if edge.node1_is_reverse else '+', edge.node2, '-' if edge.node2_is_reverse else '+'))
+
+
 
 def graph_is_same_as(graph1, graph2, strict=False, symmetry=False):
     # # collect nodes, edges number and count nodes to dict
@@ -220,7 +285,7 @@ def cal_overlap_ratio(base_node, target_node, left_most, right_most):
 
 
 
-def generate_graph(cur_align, next_align, help_aligns, min_sv_size, whole_read_seq, ref_path, next_is_last=True):
+def generate_graph(cur_align, next_align, help_aligns, min_sv_size, whole_read_seq, ref_path, qname, next_is_last=True):
     skeleton_nodes_num = 0
     insert_node_num = 0
     skeleton_nodes = []
@@ -301,8 +366,8 @@ def generate_graph(cur_align, next_align, help_aligns, min_sv_size, whole_read_s
             if overlap_with_cur > 0.8:
                 tmp_node.id = 'I{0}'.format(insert_node_num)
                 # set dup flag
-                tmp_node.node_is_dup = True
-                tmp_node.dup_from = cur_node.id
+                tmp_node.set_dup_node(cur_node.id, tmp_node.ref_start)
+
 
                 insert_nodes.append(tmp_node)
                 insert_node_num += 1
@@ -310,8 +375,8 @@ def generate_graph(cur_align, next_align, help_aligns, min_sv_size, whole_read_s
             elif overlap_with_next > 0.8:
                 tmp_node.id = 'I{0}'.format(insert_node_num)
                 # set dup flag
-                tmp_node.node_is_dup = True
-                tmp_node.dup_from = next_node.id
+                tmp_node.set_dup_node(next_node.id, tmp_node.ref_start)
+
 
                 insert_nodes.append(tmp_node)
                 insert_node_num += 1
@@ -325,12 +390,12 @@ def generate_graph(cur_align, next_align, help_aligns, min_sv_size, whole_read_s
         else:
             if overlap_with_cur > 0.8:
                 # set dup flag
-                tmp_node.node_is_dup = True
-                tmp_node.dup_from = cur_node.id
+                tmp_node.set_dup_node(cur_node.id, tmp_node.ref_start)
+
             elif overlap_with_next > 0.8:
                 # set dup flag
-                tmp_node.node_is_dup = True
-                tmp_node.dup_from = next_node.id
+                tmp_node.set_dup_node(next_node.id, tmp_node.ref_start)
+
 
             tmp_node.id = 'I{0}'.format(insert_node_num)
             insert_nodes.append(tmp_node)
@@ -395,7 +460,7 @@ def generate_graph(cur_align, next_align, help_aligns, min_sv_size, whole_read_s
         edge.node1 = update_id[edge.node1]
         edge.node2 = update_id[edge.node2]
 
-    return Graph(skeleton_srt_by_ref + insert_srt_by_read, edges)
+    return Graph(skeleton_srt_by_ref + insert_srt_by_read, edges, qname)
 
 
 def parse_graph_features(graph):
@@ -452,6 +517,15 @@ def collect_csv_same_format(gfa_path, vcf_path, out_path, sample, min_support):
 
         cnt += 1
 
+
+        chr = record.contig
+        start = record.start + 1
+        end = record.stop
+        id = str(record).split('\t')[2]
+        sv_type = record.info['SVTYPE']
+
+        record_gfa_path = os.path.join(gfa_path, "{}-{}-{}".format(chr, start, end))
+
         # if not satisfy, output directly
         # if 'CSV' not in str(record) or 'Uncovered' in str(record) or int(record.info['SUPPORT']) < 5:
         if 'CSV' not in str(record):
@@ -475,48 +549,32 @@ def collect_csv_same_format(gfa_path, vcf_path, out_path, sample, min_support):
 
             continue
 
-        chr = record.contig
-        start = record.start + 1
-        end = record.stop
 
-        sv_type = record.info['SVTYPE']
-
-        if '_' in record.id:
-            sub_id = str(record.id).split('_')[1]
-            target_gfa = '{0}-{1}-{2}_{3}_{4}'.format(chr, start, end, sub_id, sv_type)
-        else:
-            target_gfa = '{0}-{1}-{2}_{3}'.format(chr, start, end, sv_type)
-
-        target_gfa_path = '_'.join(target_gfa.split('_')[0: -1])
-        if not os.path.exists(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa_path))):
-            # print(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa)))
+        if not os.path.exists(record_gfa_path):
             continue
 
-        # # DEBUG: check path
-        # target_graph = parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa_path)))
-        # # edge feature
-        # edges1 = target_graph.edges
-        # edges1_num = len(edges1)
-        # edges1_path = ''
-        # for edge in edges1:
-        #     edges1_path += edge.node1
-        #     edges1_path += '-' if edge.node1_is_reverse else '+'
-        #     edges1_path += edge.node2
-        #     edges1_path += '-' if edge.node2_is_reverse else '+'
-        # if edges1_path == 'S0+I0+I0+S1+':
-        #     continue
-        # # # end
+        reads = record.info['READS']
+
+        # #collect record's graphs by reads
+        record_graphs = []
+        for read in reads:
+            gfa_file_path = os.path.join(record_gfa_path, '{}.gfa'.format(read.replace('/', '_')))
+            record_graphs.append(parse_gfa_file(gfa_file_path))
+
+        # # find and write record's final graph
+        record_final_graph = classify_graphs(record_graphs)[0]
+        record_final_graph_path = os.path.join(gfa_path, '{}-{}-{}-{}-{}.gfa'.format(chr, start, end, id, sv_type))
+        write_graph_to_file(record_final_graph, record_final_graph_path)
 
         # # exactly matching
+        target_gfa = '{}-{}-{}-{}-{}'.format(chr, start, end, id, sv_type)
         exactly_flag = 0
         exactly_base_gfas = ''
         cnt = -1
         for base_gfa in exactly_matching.keys():
             cnt += 1
-            base_gfa_path = '_'.join(base_gfa.split('_')[0: -1])
-            target_gfa_path = '_'.join(target_gfa.split('_')[0: -1])
-            if graph_is_same_as(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa_path))),
-                                parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa_path))), strict=True):
+            if graph_is_same_as(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa))),
+                                parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa))), strict=True):
                 exactly_flag = 1
                 exactly_base_gfas = base_gfa
                 break
@@ -556,16 +614,14 @@ def collect_csv_same_format(gfa_path, vcf_path, out_path, sample, min_support):
     gfas = list(exactly_matching.keys())
     for i in range(len(gfas)):
         for j in range(i + 1, len(gfas)):
-            base_gfa =gfas[i]
+            base_gfa = gfas[i]
             target_gfa = gfas[j]
 
-            base_gfa_path = '_'.join(base_gfa.split('_')[0: -1])
-            target_gfa_path = '_'.join(target_gfa.split('_')[0: -1])
-            if not graph_is_same_as(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa_path))),
-                                    parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa_path))), strict=True):
+            if not graph_is_same_as(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa))),
+                                    parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa))), strict=True):
 
-                if graph_is_same_as(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa_path))),
-                                    parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa_path))), strict=False, symmetry=True):
+                if graph_is_same_as(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa))),
+                                    parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa))), strict=False, symmetry=True):
                     symmetry_matching[base_gfa] = exactly_matching[base_gfa] + exactly_matching[target_gfa]
                     symmetry_matching_pair[base_gfa] = ['{0},{1}'.format(i, j), '{0},{1}'.format(len(exactly_matching[base_gfa]), len(exactly_matching[target_gfa]))]
                 else:
@@ -577,9 +633,8 @@ def collect_csv_same_format(gfa_path, vcf_path, out_path, sample, min_support):
 
         for base_gfa in exactly_matching.keys():
 
-            base_gfa_path = '_'.join(base_gfa.split('_')[0: -1])
 
-            nodes_feat, edges_feat, path_feat = parse_graph_features(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa_path))))
+            nodes_feat, edges_feat, path_feat = parse_graph_features(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa))))
             fout.write('> GraphId={0}\tNumber={1}\tNodes={2}\tEdges={3}\tPath={4}\n'.format(cnt, len(exactly_matching[base_gfa]), nodes_feat, edges_feat, path_feat))
             fout.write('\t'.join(exactly_matching[base_gfa]))
             fout.write('\n')
@@ -589,14 +644,13 @@ def collect_csv_same_format(gfa_path, vcf_path, out_path, sample, min_support):
 
         for base_gfa in symmetry_matching.keys():
             if len(symmetry_matching[base_gfa]) != 0:
-                base_gfa_path = '_'.join(base_gfa.split('_')[0: -1])
 
                 # write to file
-                nodes_feat, edges_feat, path_feat = parse_graph_features(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa_path))))
+                nodes_feat, edges_feat, path_feat = parse_graph_features(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(base_gfa))))
                 fout.write('> GraphId={0}\tNumber={1}\tNodes={2}\tEdges={3}\tPath={4}'.format(symmetry_matching_pair[base_gfa][0], symmetry_matching_pair[base_gfa][1], nodes_feat, edges_feat, path_feat))
 
                 # for target_gfa in symmetry_matching[base_gfa]:
-                target_gfa_path = '_'.join(symmetry_matching[base_gfa][-1].split('_')[0: -1])
+                target_gfa_path = symmetry_matching[base_gfa][-1]
                 _, _, path_feat = parse_graph_features(parse_gfa_file(os.path.join(gfa_path, '{0}.gfa'.format(target_gfa_path))))
                 fout.write(',{0}\n'.format(path_feat))
 

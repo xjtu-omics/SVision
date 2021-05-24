@@ -13,7 +13,6 @@ from src.network.output import merge_split_vcfs, cluster_original_callset, cal_s
 import shutil
 import pysam
 from src.collection.graph import collect_csv_same_format
-from src.version import __version__
 
 import argparse
 import multiprocessing
@@ -22,7 +21,7 @@ import traceback
 
 def parse_arguments(arguments = sys.argv[1:]):
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description="""SVision {0} \n \nShort Usage: Python SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>""".format(__version__))
+                                     description="""SVision v1.2.1 \n \nShort Usage: Python SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>""")
 
 
     required_params = parser.add_argument_group("Input/Output parameters")
@@ -82,8 +81,11 @@ def parse_arguments(arguments = sys.argv[1:]):
 
     return options
 
-def main():
+
+
+if __name__ == '__main__':
     options = parse_arguments()
+
 
     work_dir = options.out_path
     if not os.path.exists(work_dir):
@@ -93,12 +95,15 @@ def main():
     log_file = open(os.path.join(work_dir, 'log.txt'), 'w')
     # # End ADD
 
+
     sample_path = options.bam_path
     aln_file = pysam.AlignmentFile(sample_path)
 
     print('[Processing]: Bam file at ', sample_path)
 
-    window_size = 10000000  # slip on the chrom
+
+    window_size = 10000000   # slip on the chrom
+
 
     # chroms need to be detected
     refine_flag = 0
@@ -121,7 +126,7 @@ def main():
         cords = str(region).split(':')[1]
         start = int(cords.split('-')[0])
         end = int(cords.split('-')[1])
-
+    # chroms = ['chr20']
     if len(chroms) == 0:
         print('[ERROR]: No mapped reads in this bam. Exit!')
         exit()
@@ -145,7 +150,6 @@ def main():
     # if os.path.exists(clusters_out_path):
     #     shutil.rmtree(clusters_out_path)
     # os.mkdir(clusters_out_path)
-
     process_pool = multiprocessing.Pool(processes=options.thread_num)
     pool_rets = []
 
@@ -166,9 +170,7 @@ def main():
                         break
 
                     # SVision v1.0.3. MODIFY. more info to log out
-                    pool_rets.append([process_pool.apply_async(run_collection.run_detect,
-                                                               (options, sample_path, chrom, part_num, window_size)),
-                                      chrom, part_num * window_size, (part_num + 1) * window_size])
+                    pool_rets.append([process_pool.apply_async(run_collection.run_detect, (options, sample_path, chrom, part_num, window_size)), chrom, part_num * window_size, (part_num + 1) * window_size])
                     # run_collection.run_detect(options, sample_path, chrom, part_num, window_size)
                     # End MODIFY
 
@@ -211,7 +213,7 @@ def main():
     # # begin to predict types
     def predict_one_chrom(chrom, predict_results_dir, options):
         try:
-            segments_out_file = os.path.join(segments_out_path, chrom + ".segments.all.bed")
+            segments_out_file = os.path.join(segments_out_path,  chrom + ".segments.all.bed")
             chrom_predict_path = os.path.join(predict_results_dir, chrom + '.predict.' + 's' + str(options.min_support))
 
             predict = Predict(chrom, segments_out_file)
@@ -263,15 +265,21 @@ def main():
 
     # # cluster original callset if required
     if options.cluster_callset is True:
-        print("[Additional Func: Start]: Starting cluster original callset......")
-        cluster_out_file = os.path.join(work_dir,
-                                        "{0}.svision.s{1}.clusterd.vcf".format(options.sample, options.min_support))
+        print("[Additional Func: Start]: Starting cluster original callset......" )
+        cluster_out_file = os.path.join(work_dir, "{0}.svision.s{1}.clusterd.vcf".format(options.sample, options.min_support))
         cluster_original_callset(merged_vcf_path, work_dir, sample_path, cluster_out_file)
 
     # # stats graphs file.
     if options.report_graph is True:
         graph_out_path = os.path.join(options.out_path, 'graphs')
         collect_csv_same_format(graph_out_path, merged_vcf_path, options.out_path, options.sample, options.min_support)
+
+        # rm region folders
+        for file in os.listdir(graph_out_path):
+
+            file_path = os.path.join(graph_out_path, file)
+            if os.path.isdir(file_path):
+                shutil.rmtree(file_path)
 
     # # rm tmp folder
     # shutil.rmtree(clusters_out_path)
@@ -283,10 +291,6 @@ def main():
     end_time3 = datetime.datetime.now()
     cost_time = (end_time3 - start_time).seconds
     print("[Finished]: All. Total Cost time: " + str(cost_time) + "s")
-
-
-if __name__ == '__main__':
-    main()
 
 
 

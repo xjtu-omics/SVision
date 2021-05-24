@@ -26,9 +26,6 @@ def run_detect(options, sample_path, chrom, part_num, window_size):
         # # collect signatures
         sv_signatures = analyze_alignments(aligns, aln_file, options, part_num)
 
-        # for sig in sv_signatures:
-        #     print(sig.tstart, sig.tend, sig.qname)
-
         # # partition and clusters signatures to get cluster info
         clusters = partition_and_cluster(sv_signatures, fai_file, genome_file, chrom, sample_path, options)
 

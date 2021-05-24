@@ -135,45 +135,4 @@ class PlotSingleImg2():
                         (int(seg['ref_start'] / self.ratio), int(seg['q_start'] / self.ratio)), 0, self.line)
         cv.imwrite(os.path.join(self.outDir, str(self.name) + ".png"), img[:, :, :])
 
-        #
-
-
-
-        # img = np.zeros((self.read_length, self.ref_length, 3))
-        #
-        # first_channel = np.zeros((self.read_length, self.ref_length))
-        # third_channel = np.zeros((self.read_length, self.ref_length))
-        # for seg in self.segments_orignal:
-        #
-        #     if not seg['is_reverse']:
-        #         cv.line(first_channel, (int(seg['ref_start'] / self.ratio), int(seg['q_start'] / self.ratio)),
-        #                 (int(seg['ref_end']  / self.ratio), int(seg['q_end'] / self.ratio)), 255, self.line)
-        #     else:
-        #         cv.line(first_channel, (int(seg['ref_end'] / self.ratio), int(seg['q_end'] / self.ratio)),
-        #                 (int(seg['ref_start'] / self.ratio), int(seg['q_start'] / self.ratio)), 255, self.line)
-        #         cv.line(third_channel, (int(seg['ref_end'] / self.ratio), int(seg['q_end'] / self.ratio)),
-        #                 (int(seg['ref_start'] / self.ratio), int(seg['q_start'] / self.ratio)), 255, self.line)
-        #
-        #
-        # img[:, :, 0] = first_channel
-        #
-        # second_channel = np.zeros((self.read_length, self.ref_length))
-        #
-        # for i in range(self.ref_length):
-        #
-        #     dot_pos = np.where(first_channel[:, i] != 0)[0]
-        #     dot_num = len(dot_pos)
-        #     if dot_num >= 2:
-        #
-        #         second_channel[dot_pos, i] = 255
-        #
-        # img[:, :, 1] = second_channel
-        # img[:, :, 2] = third_channel
-        #
-        #
-        # cv.imwrite(os.path.join(self.outDir, str(self.name) + ".png"), img[:, :, :])
-
-
-
-
 

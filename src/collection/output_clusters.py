@@ -2,6 +2,7 @@
 
 import os
 from src.segmentplot.run_hash_lineplot import cord_to_segments
+from src.collection.graph import write_graph_to_file
 from src.collection.graph import graph_is_same_as
 def linearOrNot(i, j):
 
@@ -21,56 +22,6 @@ def linearOrNot(i, j):
         return True
 
 
-def write_graph_to_file(file_path, graphs):
-
-    out_graphs = [graphs[0]]
-
-    for i in range(1, len(graphs)):
-        graph = graphs[i]
-
-        same_flags = []
-        for target_graph in out_graphs:
-            if graph_is_same_as(graph, target_graph, strict=True) == False:
-                same_flags.append(0)
-            else:
-                same_flags.append(1)
-
-        if 1 not in same_flags:
-            out_graphs.append(graph)
-        else:
-            for i in range(len(same_flags)):
-                if same_flags[i] == 1:
-                    out_graphs[i].appear_time += 1
-
-    for graph in sorted(out_graphs, key=lambda g: g.appear_time, reverse=True):
-
-        nodes = graph.nodes
-        edges = graph.edges
-
-        # #in case: for a same region, there are more than one SV
-        graph_file_path = file_path
-        cnt = 1
-        while True:
-            if os.path.exists(graph_file_path):
-                graph_file_path = '.'.join(file_path.split('.')[0: -1]) + "_{0}.gfa".format(cnt)
-                cnt += 1
-            else:
-                break
-
-        # # output
-        with open(graph_file_path, 'w') as fout:
-            for node in nodes:
-                node_seq = node.seq if node.seq is not "" else 'N'
-                if 'I' in node.id:
-                    if node.node_is_dup == True:
-                        fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\tDP:S:{5}:{6}\n".format(node.id, node_seq, node.host, node.read_start, len(node_seq), node.dup_from, node.ref_start))
-                    else:
-                        fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\n".format(node.id, node_seq, node.host, node.read_start, len(node_seq)))
-                else:
-                    fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\n".format(node.id, node_seq, node.host, node.ref_start, len(node_seq)))
-
-            for edge in edges:
-                fout.write("L\t{0}\t{1}\t{2}\t{3}\t0M\tSR:i:0\n".format(edge.node1, '-' if edge.node1_is_reverse else '+', edge.node2, '-' if edge.node2_is_reverse else '+'))
 
 def writer_cluster_to_file(clusters, chr, part_num, options):
     """
@@ -104,8 +55,12 @@ def writer_cluster_to_file(clusters, chr, part_num, options):
                 graph_out_path = os.path.join(options.out_path, 'graphs')
 
                 graphs = [sig.graph for sig in cluster.get_signatures()]
-                cluster_graph_file = os.path.join(graph_out_path, "{0}-{1}-{2}.gfa".format(cluster.contig, int(cluster.cstart), int(cluster.cend)))
-                write_graph_to_file(cluster_graph_file, graphs)
+                cluster_graph_path = os.path.join(graph_out_path, "{0}-{1}-{2}".format(cluster.contig, int(cluster.cstart), int(cluster.cend)))
+                if not os.path.exists(cluster_graph_path):
+                    os.mkdir(cluster_graph_path)
+                for graph in graphs:
+                    graph_out_file = os.path.join(cluster_graph_path, "{}.gfa".format(graph.qname.replace('/', '_')))
+                    write_graph_to_file(graph, graph_out_file)
             # # End Add
 
             all_segs.extend(segs_of_cluster)
@@ -189,19 +144,19 @@ def proc_one_sig(cluster_region, sig, sig_cnt, options):
     segs_of_sig = []
     all_segs = main_segs + other_segs
 
-    """
-    # # DEBUG code2: output dotplots if required
-    from src.segmentplot.plot_segment import PlotSingleImg
-    dotplots_out_path = os.path.join(options.out_path, 'dotplots')
-    if not os.path.exists(dotplots_out_path):
-        os.mkdir(dotplots_out_path)
-    cluster_dotplot_out_path = os.path.join(dotplots_out_path, cluster_region)
-    if not os.path.exists(cluster_dotplot_out_path):
-        os.mkdir(cluster_dotplot_out_path)
-    # plot
-    ploter = PlotSingleImg(all_segs, refLength, readLenght, str(sig_cnt), cluster_dotplot_out_path, str('0-' + str(qname[: min(100, len(qname))]).replace('/', '_')))
-    ploter.plot()
-    """
+    # #"""
+    # # # DEBUG code2: output dotplots if required
+    # from src.segmentplot.plot_segment import PlotSingleImg
+    # dotplots_out_path = os.path.join(options.out_path, 'dotplots')
+    # if not os.path.exists(dotplots_out_path):
+    #     os.mkdir(dotplots_out_path)
+    # cluster_dotplot_out_path = os.path.join(dotplots_out_path, cluster_region)
+    # if not os.path.exists(cluster_dotplot_out_path):
+    #     os.mkdir(cluster_dotplot_out_path)
+    # # plot
+    # ploter = PlotSingleImg(all_segs, refLength, readLenght, str(sig_cnt), cluster_dotplot_out_path, str('0-' + str(qname[: min(100, len(qname))]).replace('/', '_')))
+    # ploter.plot()
+    # #"""
 
     #
     # calculate non-linear score for each dotplot
