@@ -13,6 +13,7 @@ from src.network.output import merge_split_vcfs, cluster_original_callset, cal_s
 import shutil
 import pysam
 from src.collection.graph import collect_csv_same_format
+from src.version import __version__
 
 import argparse
 import multiprocessing
@@ -21,7 +22,7 @@ import traceback
 
 def parse_arguments(arguments = sys.argv[1:]):
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description="""SVision v1.2.1 \n \nShort Usage: Python SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>""")
+                                     description="""SVision {0} \n \nShort Usage: Python SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>""".format(__version__))
 
 
     required_params = parser.add_argument_group("Input/Output parameters")

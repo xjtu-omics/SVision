@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="jdlin@192.168.20.4:22" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="jdlin@192.168.20.4:22">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/jdlin/Biotools/SVision" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
