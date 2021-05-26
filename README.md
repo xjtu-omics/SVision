@@ -119,10 +119,18 @@ The ID for simple SVs is -1.
 
 ### CSV graph 
 
+#### CSV graph compare
+
+SVision classify the graph of each CSV instances by comparing their graph topologies. 
+It will create two text (.txt) file along with the VCF output.
+
+1. ```sample.graph_exactly_match.txt```: Unique graphs for all CSV instances.
+2. ```sample.graph_symmetry_match.txt```: Topological similar graph found from unique graphs.
+
 #### Graph format
 
 The graph output requires ```--report_graph``` activated. 
-The below example is an CSV in rGFA format, which is detected by SVision at chr11:99,819,283-99,820,576 in HG00733. 
+The below example is an CSV in rGFA format (node sequence is omitted for display purpose), which is detected by SVision at chr11:99,819,283-99,820,576 in HG00733. 
 The graph output is saved in separated files for each CSV events.
 
 ```
@@ -172,6 +180,7 @@ m54329U_190827_173812/140708091/ccs     21668   0       21668   +     �
 m54329U_190617_231905/88145984/ccs      13612   0       13612   +       >S0>I0>I1<I2>I3>I4>S1
 m54329U_190617_231905/88145984/ccs      13612   0       13612   +       >S0>I0>I1<I2>I3>I4>S1
 ```
+
 
 ## Contact
 If you have any questions, please feel free to contact: jiadong66@stu.xjtu.edu.cn, songbowang125@163.com
