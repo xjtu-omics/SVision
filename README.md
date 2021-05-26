@@ -59,7 +59,8 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 
 ```-g``` path to the reference genome, the index file should under the same directory.
 
-```-m``` path to the pre-trained deep learning model ([download link](https://drive.google.com/drive/folders/1j74IN6kPKEx9hy3aENx3zHYPUnyYWGvj?usp=sharing)).
+```-m``` path to the pre-trained deep learning model *svision-cnn-model.ckpt* ([download link](https://drive.google.com/drive/folders/1j74IN6kPKEx9hy3aENx3zHYPUnyYWGvj?usp=sharing)). Please download all files and save them to your local directory.
+
 
 #### General parameters
 ```
