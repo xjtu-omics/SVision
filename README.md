@@ -31,14 +31,6 @@ Step3: Install SVision from PyPI
 pip install SVision
 ```
 
-(Optional) Install from source code
-
-```
-git clone https://github.com/xjtu-omics/SVision.git
-cd SVision
-python setup.py install
-```
-
 ## Usage
 
 ```
@@ -152,11 +144,9 @@ Besides the information included in standard [rGFA](https://github.com/lh3/gfato
 we add another ```DP:S``` column to indicate sequence with detected origins via local realignment, 
 such as node ```I2``` is duplicated from node ```S1```. 
 
-#### Graph alignment (Experimental)
+#### Graph genotyping
 
-**Note**: This function is not included in the current program, it is a post-processing step that tries to validate the detected CSVs. 
-
-To validate the detected CSV, we align raw HiFi reads to the mini graph (CSV graph) reported by SVision with GraphAligner.
+**Note**: This is a post-processing step that tries to validate the detected CSVs. 
 
 **Step1: Extract HiFi raw reads**
 
