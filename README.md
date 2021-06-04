@@ -68,7 +68,8 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 
 ```--hash_table``` enables the image subtraction process, which is activated by default. 
 
-```--report_graph``` enables the program to create the CSV graph in GFA format, which is not activated by default. 
+```--report_graph``` enables the program to create the CSV graph in GFA format. Because SVision process each read at CSV sites, 
+it will cost more time as the sequencing depth increasing. 
 
 ```--report_mechanism``` is used to infer the formation mechansim according to the breakpoint sequence features. 
 This is still underdevelopment, which is not recommended to use for current version.
