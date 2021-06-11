@@ -36,8 +36,13 @@ pip install SVision
 ```
 SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>
 ```
+Check all parameters with
 
-Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more usage details. 
+```
+SVision -h
+```
+
+Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more usage details.
 
 #### Input/output parameters
 
@@ -75,17 +80,6 @@ it will cost more time as the sequencing depth increasing.
 This is still underdevelopment, which is not recommended to use for current version.
 
 ```--contig``` is used for calling from assemblies, which currently uses minimap2 aligned BAM file as input.
-
-#### Other parameters
-
-```--partition_max_distsance``` maximum distance allowed of a group of feature sequences.
-
-```--cluster_max_distance``` maximum distance for feature sequence clustering. This is implemented via Scipy hierarchical clustering.
-
-```--k_size``` size of kmer used in hash-table realignment, only used when ```--hash_table``` is activated.
-
-```--min_accept``` minimum matched segment length, default is 50bp.
-
 
 ## SVision output
 
