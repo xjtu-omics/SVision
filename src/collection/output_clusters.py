@@ -162,6 +162,9 @@ def proc_one_sig(cluster_region, sig, sig_cnt, options):
     # calculate non-linear score for each dotplot
     non_linear_score = cal_non_linear(all_segs)
 
+    if non_linear_score == -1:
+        return -1
+
     sub_cnt = 0
 
     # conbining major segments
@@ -233,6 +236,11 @@ def cal_non_linear(all_segs):
 
     # normalize by span distance on ref
     ref_span = max(ref_cords) - min(ref_cords)
-    final_score = int(sumup_non_linear / ref_span)
 
-    return final_score
+    # SVision v1.3.4 add. robust fix: when meet ref_span=0
+    if ref_span == 0:
+        return -1
+    else:
+        final_score = int(sumup_non_linear / ref_span)
+
+        return final_score
