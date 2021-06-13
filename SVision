@@ -34,16 +34,16 @@ def parse_arguments(arguments = sys.argv[1:]):
 
 
     general_params = parser.add_argument_group("General parameters")
-    general_params.add_argument('-t', dest="thread_num", type=int, default=1, help='Thread numbers [1]')
-    general_params.add_argument('-s', dest="min_support", type=int, default=1, help='Min support read number for an SV [1]')
+    general_params.add_argument('-t', dest="thread_num", type=int, default=1, help='Thread numbers (default: %(default)s)')
+    general_params.add_argument('-s', dest="min_support", type=int, default=1, help='Min support read number for an SV (default: %(default)s)')
     general_params.add_argument('-c', dest="chrom", type=str, default=None, help='Specific region to detect, format: chr1:xxx-xxx or 1:xxx-xxx')
-    general_params.add_argument('--hash_table', action="store_true", default=False,
+    general_params.add_argument('--hash', action="store_true", default=False,
                                  help='Activate hash table to align unmapped sequences')
-    general_params.add_argument('--cluster_callset', action="store_true", default=False,
-                                 help='Cluster original callset to merge uncovered event')
-    general_params.add_argument('--report_mechanism', action="store_true", default=False,
-                                 help='Report mechanisms for DEL event')
-    general_params.add_argument('--report_graph', action="store_true", default=False,
+    general_params.add_argument('--cluster', action="store_true", default=False,
+                                 help='Cluster calls that might occur together')
+    # general_params.add_argument('--report_mechanism', action="store_true", default=False,
+    #                              help='Report mechanisms for DEL event')
+    general_params.add_argument('--graph', action="store_true", default=False,
                                  help='Report graph for events')
 
     general_params.add_argument('--contig', action="store_true", default=False,
@@ -56,25 +56,25 @@ def parse_arguments(arguments = sys.argv[1:]):
 
     collect_params = parser.add_argument_group("Collect parameters")
 
-    collect_params.add_argument("--min_mapq", type=int, default=10, help='Minimum mapping quality of reads to consider [10]')
-    collect_params.add_argument("--min_sv_size", type=int, default=50, help='Minimum SV size to detect [50]')
-    collect_params.add_argument("--max_sv_size", type=int, default=1000000, help='Maximum SV size to detect [1000000])')
+    collect_params.add_argument("--min_mapq", type=int, default=10, help='Minimum mapping quality of reads to consider (default: %(default)s)')
+    collect_params.add_argument("--min_sv_size", type=int, default=50, help='Minimum SV size to detect (default: %(default)s)')
+    collect_params.add_argument("--max_sv_size", type=int, default=1000000, help='Maximum SV size to detect (default: %(default)s)')
 
     cluster_params = parser.add_argument_group("Cluster parameters")
     cluster_params.add_argument("--patition_max_distance", type=int, default=5000,
-                                help='Maximum distance to partition signatures [5000]')
+                                help='Maximum distance to partition signatures (default: %(default)s)')
     cluster_params.add_argument("--cluster_max_distance", type=float, default=0.3,
-                                help='Clustering maximum distance for a partition [0.3]]')
+                                help='Clustering maximum distance for a partition (default: %(default)s)')
 
 
     hash_params = parser.add_argument_group("Hash table parameters")
-    hash_params.add_argument("--k_size", type=int, default=10, help='Size of kmer [10]')
-    hash_params.add_argument("--min_accept", type=int, default=50, help='Min match length to accept [50]')
-    hash_params.add_argument("--max_hash_len", type=int, default=256, help='Max unmapped length to hashtable [256]')
+    hash_params.add_argument("--k_size", type=int, default=10, help='Size of kmer (default: %(default)s)')
+    hash_params.add_argument("--min_accept", type=int, default=50, help='Min match length to accept (default: %(default)s)')
+    hash_params.add_argument("--max_hash_len", type=int, default=256, help='Max unmapped length to hashtable (default: %(default)s)')
 
 
     predict_params = parser.add_argument_group("Predict parameters")
-    predict_params.add_argument("--batch_size", type=int, default=128, help='Batch size for the CNN prediction model [128]')
+    predict_params.add_argument("--batch_size", type=int, default=128, help='Batch size for the CNN prediction model (default: %(default)s)')
 
     options = parser.parse_args(arguments)
 
@@ -262,14 +262,14 @@ if __name__ == '__main__':
     #     analyze_mechanism(merged_vcf_path, mechanism_dir, options)
 
     # # cluster original callset if required
-    if options.cluster_callset is True:
+    if options.cluster:
         print("[Additional Func: Start]: Starting cluster original callset......")
         cluster_out_file = os.path.join(work_dir,
                                         "{0}.svision.s{1}.clusterd.vcf".format(options.sample, options.min_support))
         cluster_original_callset(merged_vcf_path, work_dir, sample_path, cluster_out_file)
 
     # # stats graphs file.
-    if options.report_graph is True:
+    if options.report:
         graph_out_path = os.path.join(options.out_path, 'graphs')
         collect_csv_same_format(graph_out_path, merged_vcf_path, options.out_path, options.sample, options.min_support)
 

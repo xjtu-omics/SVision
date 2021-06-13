@@ -21,7 +21,7 @@ conda create -n svision-env python=3.6
 Step2: Install required packages of specific versions
 
 ```
-conda install -c anaconda pysam==0.16.0
+conda install -c bioconda pysam
 conda install -c conda-forge opencv==4.5.1
 conda install -c conda-forge tensorflow==1.14.0
 ```
@@ -64,20 +64,15 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 -t THREAD_NUM         Thread numbers [1]
 -s MIN_SUPPORT        Min support read number for an SV [1]
 -c CHROM              Specific region to detect, format: chr1:xxx-xxx or 1:xxx-xxx
---hash_table          Activate hash table to align unmapped sequences
---cluster_callset     Cluster original callset to merge uncovered event
---report_mechanism    Report mechanisms for DEL event
---report_graph        Report graph for events
+--hash          Activate hash table to align unmapped sequences
+--cluster     Cluster calls that might occur together
+--graph        Report graph for events
 --contig              Activate contig mode
 ```
 
-```--hash_table``` enables the image subtraction process, which is activated by default. 
+```--hash``` enables kmer based alignment for unmapped sequences. 
 
-```--report_graph``` enables the program to create the CSV graph in GFA format. Because SVision process each read at CSV sites, 
-it will cost more time as the sequencing depth increasing. 
-
-```--report_mechanism``` is used to infer the formation mechansim according to the breakpoint sequence features. 
-This is still underdevelopment, which is not recommended to use for current version.
+```--graph``` enables the program to create the CSV graph in GFA format. This might increase the running time for high-coverage sequencing (>50X).
 
 ```--contig``` is used for calling from assemblies, which currently uses minimap2 aligned BAM file as input.
 
@@ -116,7 +111,7 @@ It will create two text (.txt) file along with the VCF output.
 
 #### Graph format
 
-The graph output requires ```--report_graph``` activated. 
+The graph output requires ```--graph``` activated. 
 The below example is an CSV in rGFA format (node sequence is omitted for display purpose), which is detected by SVision at chr11:99,819,283-99,820,576 in HG00733. 
 The graph output is saved in separated files for each CSV events.
 

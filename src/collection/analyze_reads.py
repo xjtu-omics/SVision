@@ -728,7 +728,7 @@ def analyze_between_aligns(primary, supplmentary, bam, options):
             major_segs.append(base_seg)
 
 
-    if options.hash_table == True:
+    if options.hash == True:
         # first find all the main segs' index
         main_segs_index = []
         all_segs = []
@@ -895,7 +895,7 @@ def analyze_inside_align(seg_dict, cigar_ops, cigar_lengths, options):
     # # end
 
     # # if there is a ins, then re-align to find if a dup exists
-    if options.hash_table == True:
+    if options.hash == True:
 
         for ins in all_ins_seqs:
             seg_read_start = ins[0]
