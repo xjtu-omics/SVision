@@ -245,7 +245,7 @@ def cluster_original_callset(callset_path, out_path, sample_path, cluster_out_fi
 
 
 
-def merge_split_vcfs(in_dir, merged_vcf_path, ref_path, max_score, min_score):
+def merge_split_vcfs(in_dir, merged_vcf_path, ref_path, max_score, min_score, spec_chroms, min_support):
     files = os.listdir(in_dir)
 
     merged_vcf = open(merged_vcf_path, 'w')
@@ -290,11 +290,10 @@ def merge_split_vcfs(in_dir, merged_vcf_path, ref_path, max_score, min_score):
     print("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT", file=merged_vcf)
 
     id_num = -1
-    for vcf_file in files:
-        if 'vcf' not in vcf_file:
-            continue
+    for chrom in spec_chroms:
+        vcf_path = os.path.join(in_dir, '{}.predict.s{}.vcf'.format(chrom, min_support))
 
-        vcf_file = open(os.path.join(in_dir, vcf_file), 'r')
+        vcf_file = open(vcf_path, 'r')
 
         previous_start = 0
         previous_end = 1
@@ -588,7 +587,7 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
                 new_type = '<SV>'
 
 
-            if options.report_mechanism == True:
+            if options.mechanism == True:
                 info = "END={0};SVLEN={1};{2};{3};{4};{5};{6};{7}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info, svreads_info, mechanism_info)
             else:
                 info = "END={0};SVLEN={1};{2};{3};{4};{5};{6}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info, svreads_info)

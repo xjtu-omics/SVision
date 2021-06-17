@@ -231,7 +231,7 @@ def analyze_alignments(aligns, bam, options, part_num):
             next_align = sorted_segs_list[1].copy()
 
             graph = None
-            if options.report_graph is True:
+            if options.graph is True:
                 graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
             sig = analyze_gap(current_align, next_align, bam, options)
             if sig is not None:
@@ -249,7 +249,7 @@ def analyze_alignments(aligns, bam, options, part_num):
                 next_align = sorted_segs_list[1].copy()
 
                 graph = None
-                if options.report_graph is True:
+                if options.graph is True:
                     graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
                 sig = analyze_gap(current_align, next_align, bam, options)
                 if sig is not None:
@@ -263,7 +263,7 @@ def analyze_alignments(aligns, bam, options, part_num):
                 next_align = sorted_segs_list[-1].copy()
 
                 graph = None
-                if options.report_graph is True:
+                if options.graph is True:
                     graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
                 sig = analyze_gap(current_align, next_align, bam, options)
                 if sig is not None:
@@ -292,7 +292,7 @@ def analyze_alignments(aligns, bam, options, part_num):
                     # segs between cur and next is help aligns
                     help_aligns = sorted_segs_list[current_index + 1: next_index]
                     graph = None
-                    if options.report_graph is True:
+                    if options.graph is True:
                         if i != len(all_main_align) - 1 - 1:
                             graph = generate_graph(current_align, next_align, help_aligns.copy(), options.min_sv_size, whole_read_seq, options.genome, qname, False)
                         else:

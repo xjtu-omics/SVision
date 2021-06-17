@@ -51,7 +51,7 @@ def writer_cluster_to_file(clusters, chr, part_num, options):
             # res.append(cluster)       # DEBUG code1
 
             # # Add. Deepsv v1.2. write graph to file
-            if options.report_graph is True:
+            if options.graph is True:
                 graph_out_path = os.path.join(options.out_path, 'graphs')
 
                 graphs = [sig.graph for sig in cluster.get_signatures()]
