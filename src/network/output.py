@@ -280,7 +280,6 @@ def merge_split_vcfs(in_dir, merged_vcf_path, ref_path, max_score, min_score, sp
     print("##INFO=<ID=SUPPORT,Number=1,Type=String,Description=\"SV support number in this region\">", file=merged_vcf)
     print("##INFO=<ID=VAF,Number=1,Type=String,Description=\"SV allele frequency in this region\">", file=merged_vcf)
     print("##INFO=<ID=READS,Number=.,Type=String,Description=\"SV support read names in this region\">", file=merged_vcf)
-    print("##INFO=<ID=MECHANISM,Number=1,Type=String,Description=\"DNA repair mechanism (MMBIR, NAHR, NHEJ, altEJ)\">", file=merged_vcf)
     print("##INFO=<ID=GraphID,Number=1,Type=String,Description=\"The corresponding graph id\">", file=merged_vcf)
 
     print("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">", file=merged_vcf)
@@ -586,13 +585,18 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
             else:
                 new_type = '<SV>'
 
-
-            if options.mechanism == True:
-                info = "END={0};SVLEN={1};{2};{3};{4};{5};{6};{7}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info, svreads_info, mechanism_info)
-            else:
+            ## v1.3.5 added control qname output and ignore mechanism
+            # if options.mechanism:
+            #     info = "END={0};SVLEN={1};{2};{3};{4};{5};{6};{7}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info, svreads_info, mechanism_info)
+            # else:
+            if options.qname:
                 info = "END={0};SVLEN={1};{2};{3};{4};{5};{6}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info, svreads_info)
+            else:
+                info = "END={0};SVLEN={1};{2};{3};{4};{5}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info)
+            # End Add
 
             # SVision v1.1.6, ADD. report GT
+            ## TODO: add new functions for genotyping
             vaf = float(all_vaf[i])
             if vaf > 0.8:
                 GT='1/1'

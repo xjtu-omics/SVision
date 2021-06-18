@@ -25,11 +25,13 @@ conda install -c bioconda pysam
 conda install -c conda-forge opencv==4.5.1
 conda install -c conda-forge tensorflow==1.14.0
 ```
-Step3: Install SVision from PyPI
+Step3: Install SVision from source
 
 ```
-pip install SVision
+python setup.py install
 ```
+
+The Pip and Conda install would be available after the **-beta* version.
 
 ## Usage
 
@@ -65,6 +67,7 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 -s MIN_SUPPORT        Min support read number for an SV [1]
 -c CHROM              Specific region to detect, format: chr1:xxx-xxx or 1:xxx-xxx
 --hash          Activate hash table to align unmapped sequences
+--qnames    Report support names for each events
 --cluster     Cluster calls that might occur together
 --graph        Report graph for events
 --contig              Activate contig mode
