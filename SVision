@@ -2,12 +2,15 @@
 
 import sys
 import os
+import logging
+from time import strftime, localtime
 # for file in os.listdir(os.getcwd()):
 #     if os.path.isdir(file):
 #         sys.path.append(os.path.join(os.getcwd(), file))
 
 from src.collection import run_collection
 from src.network.predict import Predict
+
 import datetime
 from src.network.output import merge_split_vcfs, cluster_original_callset, cal_scores_max_min
 import shutil
@@ -66,6 +69,8 @@ def parse_arguments(arguments = sys.argv[1:]):
     collect_params.add_argument("--min_mapq", type=int, default=10, help='Minimum mapping quality of reads to consider (default: %(default)s)')
     collect_params.add_argument("--min_sv_size", type=int, default=50, help='Minimum SV size to detect (default: %(default)s)')
     collect_params.add_argument("--max_sv_size", type=int, default=1000000, help='Maximum SV size to detect (default: %(default)s)')
+    collect_params.add_argument("--window_size", type=int, default=10000000, help='The sliding window size in segment collection (default: %(default)s)')
+
 
     cluster_params = parser.add_argument_group("Cluster parameters")
     cluster_params.add_argument("--patition_max_distance", type=int, default=5000,
@@ -97,19 +102,58 @@ if __name__ == '__main__':
     if not os.path.exists(work_dir):
         os.mkdir(work_dir)
 
+    ## v1.3.5 Create new log file
+    log_format = logging.Formatter("%(asctime)s [%(levelname)]  %(message)s")
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+
+
+    fileHandler = logging.FileHandler("{0}/SVision_{1}.log".format(work_dir, strftime("%y%m%d_%H%M%S", localtime())), mode="w")
+    fileHandler.setFormatter(log_format)
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(log_format)
+    root_logger.addHandler(fileHandler)
+    ## End ADD
+
+    logging.info('******************** Start SVision, version {0} ********************'.format(__version__))
+    logging.info("CMD: {0}".format(" ".join(sys.argv)))
+    logging.info("WORKDIR DIR: {0}".format(os.path.abspath(work_dir)))
+    logging.info("CNN MODEL: {0}".format(os.path.abspath(options.model_path)))
+
     # # SVision v1.0.3. ADD. log file
-    log_file = open(os.path.join(work_dir, 'log.txt'), 'w')
+    # log_file = open(os.path.join(work_dir, 'log.txt'), 'w')
     # # End ADD
 
     sample_path = options.bam_path
     aln_file = pysam.AlignmentFile(sample_path)
 
-    print('[Processing]: Bam file at ', sample_path)
+    ## Check the input
+    logging.info("INPUT BAM: {0}".format(os.path.abspath(sample_path)))
+    try:
+        if aln_file.header["HD"]["SO"] == "coordinate":
+            try:
+                aln_file.check_index()
+            except ValueError:
+                logging.warning("Input BAM file is missing a valid index. Please generate with 'samtools faidx'. Continuing without genotyping for now..")
+                options.skip_genotyping = True
+            except AttributeError:
+                logging.warning("pysam's .check_index raised an Attribute error. Something is wrong with the input BAM file.")
+                exit()
+    except:
+        logging.error("This is not a coordinate sorted BAM file")
+        exit()
 
-    window_size = 10000000  # slip on the chrom
+    # print('[Processing]: Bam file at ', sample_path)
+
+    # window_size = 10000000  # slip on the chrom
+
+    # v1.3.5 added param
+    window_size = options.window_size
+    ## End ADD
 
     # chroms need to be detected
-    refine_flag = 0
+    refine_flag = 0 # flag for processing a given region
     start = 0
     end = 0
     if options.chrom == None:
@@ -131,7 +175,8 @@ if __name__ == '__main__':
         end = int(cords.split('-')[1])
     # chroms = ['chr20']
     if len(chroms) == 0:
-        print('[ERROR]: No mapped reads in this bam. Exit!')
+        # print('[ERROR]: No mapped reads in this bam. Exit!')
+        logging.error("No mapped reads in the BAM, please check your input!")
         exit()
 
     start_time = datetime.datetime.now()
@@ -153,6 +198,7 @@ if __name__ == '__main__':
     #     shutil.rmtree(clusters_out_path)
     # os.mkdir(clusters_out_path)
 
+    logging.info('\n****************** Step1 Image coding and segmentation ******************')
     chrom_split_files = {}
     process_pool = multiprocessing.Pool(processes=options.thread_num)
     pool_rets = []
@@ -169,9 +215,10 @@ if __name__ == '__main__':
             ref_len = aln_file.get_reference_length(chrom)
             part_num = 0
 
-            if options.contig is True:
+            if options.contig:
                 window_size = ref_len
                 run_collection.run_detect(options, sample_path, chrom, part_num, ref_len)
+                chrom_split_files[chrom] += os.path.join(segments_out_path, "{}.segments.{}.bed ".format(chrom, part_num))
             else:
 
                 while True:
@@ -205,11 +252,13 @@ if __name__ == '__main__':
         ret_get = ret[0].get()
         if ret_get is not None:
             error_num += 1
-            log_file.write('[Collecting Error]: at ' + ret[1] + '\t' + str(ret[2]) + '\t' + str(ret[3]) + '\n')
-            log_file.write(ret_get + '\n')
+            # log_file.write('[Collecting Error]: at ' + ret[1] + '\t' + str(ret[2]) + '\t' + str(ret[3]) + '\n')
+            # log_file.write(ret_get + '\n')
+            logging.error('[Collecting Error]: at ' + ret[1] + '\t' + str(ret[2]) + '\t' + str(ret[3]) + '\n')
+            logging.error(ret_get + '\n')
 
     if error_num > 0:
-        print('\n[Warning]: {0} threads failed when collecting. See log.txt for More!'.format(error_num))
+        logging.warning('{0} threads failed when collecting. See log.txt for More!'.format(error_num))
     # # End MODIFY
 
     # merge splited files
@@ -221,8 +270,9 @@ if __name__ == '__main__':
 
     end_time_collect = datetime.datetime.now()
     cost_time = (end_time_collect - start_time).seconds
-    print("[Finished]: Collect segment signatures, Cost time: " + str(cost_time))
+    logging.info("[Coding finished]: Collect segment signatures, Cost time: " + str(cost_time))
 
+    logging.info('\n****************** Step2 CNN prediction ******************')
     # # begin to predict types
     def predict_one_chrom(chrom, predict_results_dir, options):
         try:
@@ -252,20 +302,22 @@ if __name__ == '__main__':
         ret_get = ret[0].get()
         if ret_get is not None:
             error_num += 1
-            log_file.write('[Predicting Error]: at ' + ret[1] + '\n')
-            log_file.write(ret_get + '\n')
+            # log_file.write('[Predicting Error]: at ' + ret[1] + '\n')
+            # log_file.write(ret_get + '\n')
+            logging.info('[Predicting Error]: at ' + ret[1] + '\n')
+            logging.info(ret_get + '\n')
 
     if error_num > 0:
-        print('\n[Warning]: {0} threads failed when predicting. See log.txt for More!'.format(error_num))
+        logging.warning('{0} threads failed when predicting. See log.txt for More!'.format(error_num))
 
     end_time_predict = datetime.datetime.now()
     cost_time = (end_time_predict - end_time_collect).seconds
-    print("[Finished]: Predicting types, Cost time: " + str(cost_time))
+    logging.info("[Prediction finished]: Predicting types, Cost time: " + str(cost_time))
 
     # # begin to score SV and merge chrom's results together
     max_score, min_score = cal_scores_max_min(predict_results_dir)
     merged_vcf_path = os.path.join(options.out_path, "{0}.svision.s{1}.vcf".format(options.sample, options.min_support))
-    merge_split_vcfs(predict_results_dir, merged_vcf_path, options.genome, max_score, min_score, chroms, options.min_support)
+    merge_split_vcfs(predict_results_dir, merged_vcf_path, max_score, min_score, chroms, options)
 
     # # the following: run repeatmasker and trf to annotate TE and VNTR, non use for current version, but in v2.0
     # # # analyse mechanism
@@ -278,15 +330,15 @@ if __name__ == '__main__':
 
     # # cluster original callset if required
     if options.cluster:
-        print("[Additional Func: Start]: Starting cluster original callset......")
-        cluster_out_file = os.path.join(work_dir,
-                                        "{0}.svision.s{1}.clusterd.vcf".format(options.sample, options.min_support))
+        logging.info("[Additional Func: cluster] Starting cluster original callset......")
+        cluster_out_file = os.path.join(work_dir, "{0}.svision.s{1}.clusterd.vcf".format(options.sample, options.min_support))
         cluster_original_callset(merged_vcf_path, work_dir, sample_path, cluster_out_file)
 
     # # stats graphs file.
     if options.graph:
+        logging.info('\n****************** Step3 Computing graphs ******************')
         graph_out_path = os.path.join(options.out_path, 'graphs')
-        collect_csv_same_format(graph_out_path, merged_vcf_path, options.out_path, options.sample, options.min_support)
+        collect_csv_same_format(graph_out_path, merged_vcf_path, options)
 
         # rm region folders
         for file in os.listdir(graph_out_path):
@@ -298,18 +350,18 @@ if __name__ == '__main__':
         # # v1.3.5 add time consumption
         end_time_graph = datetime.datetime.now()
         cost_time = (end_time_graph - end_time_predict).seconds
-        print("[Finished]: Generate graphs, Cost time: " + str(cost_time))
+        logging.info("[Graph creation finished] Generate graphs, Cost time: " + str(cost_time))
 
     # # rm tmp folder
     # shutil.rmtree(clusters_out_path)
     shutil.rmtree(segments_out_path)
     shutil.rmtree(predict_results_dir)
 
-    log_file.close()
+    # log_file.close()
 
     end_time_final = datetime.datetime.now()
     cost_time = (end_time_final - start_time).seconds
-    print("[Finished]: All. Total Cost time: " + str(cost_time) + "s")
+    logging.info("[All steps finished] Total Cost time: " + str(cost_time) + "s")
 
 
 # python SVision -o /mnt/e/data_more/CCS/HG00733/ngmlr/sv_call/test/ -b /mnt/e/data_more/CCS/HG00733/ngmlr/chr22.bam -m /mnt/d/Workspace/Projects/DeepSV/src/model_ft/svision-cnn-model.ckpt -g /mnt/d/Data/Bams/REF/GRCh38/GRCh38_chr1-x.fa -t 4 -n test --report_graph -s 5

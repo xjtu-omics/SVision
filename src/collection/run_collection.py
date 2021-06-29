@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 # encoding: utf-8
-
-
+import logging
 
 from src.collection.collect_signatures import analyze_alignments
 from src.collection.cluster_signatures import partition_and_cluster
@@ -13,8 +12,8 @@ import traceback
 
 def run_detect(options, sample_path, chrom, part_num, window_size):
     if part_num == 0:
-        print('[Processing]: Collecting ' + chrom)
-
+        # print('[Processing]: Collecting ' + chrom)
+        logging.info('[Processing] Collecting ' + chrom)
     try:
         fai_file = options.genome + ".fai"
         genome_file = open(options.genome, "r")
@@ -28,6 +27,7 @@ def run_detect(options, sample_path, chrom, part_num, window_size):
 
         # # partition and clusters signatures to get cluster info
         clusters = partition_and_cluster(sv_signatures, fai_file, genome_file, chrom, sample_path, options)
+        logging.info('[Processing] {0}-{1}, segments collected: {2}'.format(part_num * window_size, (part_num + 1) * window_size, len(sv_signatures)))
 
         # # write cluster info to file
         writer_cluster_to_file(clusters, chrom, part_num, options)
@@ -55,6 +55,7 @@ def run_refine(options, sample_path, chrom, start, end):
 
         # # partition and clusters signatures to get cluster info
         clusters = partition_and_cluster(sv_signatures, fai_file, genome_file, chrom, sample_path, options)
+        logging.info('[Processing] {0}:{1}-{2}, segments collected: {3}'.format(chrom, start, end, len(sv_signatures)))
 
         # # write cluster info to file
         writer_cluster_to_file(clusters, chrom, part_num, options)

@@ -2,6 +2,8 @@
 
 
 import numpy as np
+import logging
+
 import tensorflow as tf
 from src.network.alexnet import AlexNet
 from src.network.create_batch import BatchGenerator
@@ -199,7 +201,7 @@ class Predict:
 
             sig_types = []
             predict_scores = []
-            print('[Processing]: Predicting ' + self.chrom)
+            logging.info('[Processing] Predicting ' + self.chrom)
 
             for _ in range(val_batches_per_epoch):
                 batch_px, batch_py = batch_generator.next_batch(batch_size)

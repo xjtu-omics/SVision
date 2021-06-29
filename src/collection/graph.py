@@ -1,3 +1,5 @@
+import logging
+
 import pysam
 import os
 import shutil
@@ -500,10 +502,16 @@ def parse_graph_features(graph):
 
     return nodes_feature, edges_num, edges_path
 
-def collect_csv_same_format(gfa_path, vcf_path, out_path, sample, min_support):
+def collect_csv_same_format(gfa_path, vcf_path, options):
+    out_path = options.out_path
+    sample = options.sample
+    min_support = options.min_support
+
     # svision v1.2.1 add
     graph_vcf = open(os.path.join(out_path, "{0}.svision.s{1}.graph.vcf".format(sample, min_support)), 'w')
     # end
+
+    logging.info('Adding GraphID to VCF, output {0}'.format("{0}.svision.s{1}.graph.vcf".format(sample, min_support)))
 
     exactly_matching = {}
     symmetry_matching = {}
@@ -548,7 +556,6 @@ def collect_csv_same_format(gfa_path, vcf_path, out_path, sample, min_support):
             # Add, End
 
             continue
-
 
         if not os.path.exists(record_gfa_path):
             continue
@@ -609,7 +616,7 @@ def collect_csv_same_format(gfa_path, vcf_path, out_path, sample, min_support):
 
     graph_vcf.close()
 
-
+    logging.info('Find symmetric graphs')
     # deal symmetry
     gfas = list(exactly_matching.keys())
     for i in range(len(gfas)):

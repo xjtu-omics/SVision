@@ -107,6 +107,10 @@ def run_filter(svision_vcf, svision_exact_graph, ref_fasta, exclude_file, exclud
                 if int(info_dict["SVLEN"]) < max_sv_size and int(info_dict['SUPPORT']) >= min_sr:
                     all_sv_num += 1
                     if info_dict['GraphID'] != "-1":
+                        ## Modified v1.3.5
+                        if info_dict['GraphID'] in exclude_graphid:
+                            continue
+
                         if info_dict['GraphID'] not in incomplete_graphs and entries[6] != 'Uncovered':
                             if id in csv_by_id:
                                 csv_by_id[id].append((chrom, start, info_dict['END'], entries[2], info_dict['GraphID'], int(info_dict['SUPPORT'])))
@@ -122,9 +126,6 @@ def run_filter(svision_vcf, svision_exact_graph, ref_fasta, exclude_file, exclud
 
         sorted_csvs = sorted(csvs, key=lambda x: x[-1], reverse=True)
         selected_csv = sorted_csvs[0]
-        if selected_csv[4] in exclude_graphid:
-           continue
-
         high_conf_csv_list.append((selected_csv[0], int(selected_csv[1]), int(selected_csv[2]), selected_csv[3], selected_csv[4]))
 
     df_high_conf_csvs = pd.DataFrame(high_conf_csv_list, columns=['chrom', 'start', 'end', 'id', 'graphid'])

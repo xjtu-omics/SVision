@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
 import os
+import logging
+
 from src.segmentplot.run_hash_lineplot import cord_to_segments
 from src.collection.graph import write_graph_to_file
 from src.collection.graph import graph_is_same_as
+
+
 def linearOrNot(i, j):
 
     distance_on_ref = j.yStart() - i.yEnd()
@@ -84,6 +88,7 @@ def writer_cluster_to_file(clusters, chr, part_num, options):
         chr_segments_out_file.write(seg)
     chr_segments_out_file.close()
 
+    logging.info('[Processing] Write segments to: {0}'.format(chr + '.segments.' + str(part_num) + '.bed'))
 
 def proc_one_cluster(cluster, options):
     """

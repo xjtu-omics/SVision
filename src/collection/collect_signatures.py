@@ -143,7 +143,7 @@ def analyze_alignments(aligns, bam, options, part_num):
         # # align to a ref that not in genome reference
         align_chr = align.reference_name
         if align_chr not in all_possible_chrs:
-            print("[Warning]: '{0}' not in reference's .fa file, skip this read".format(align_chr))
+            logging.warning("{0} not in reference index file, skip this read".format(align_chr))
             continue
 
         align_ref_id = bam.get_tid(align.reference_name)
@@ -231,13 +231,15 @@ def analyze_alignments(aligns, bam, options, part_num):
             next_align = sorted_segs_list[1].copy()
 
             graph = None
-            if options.graph is True:
+            ## TODO: further optimization required
+            if options.graph:
                 graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
             sig = analyze_gap(current_align, next_align, bam, options)
             if sig is not None:
 
                 sig.set_graph(graph)
                 seg_signatures.append(sig)
+            ## END
 
         else:
 
@@ -249,7 +251,7 @@ def analyze_alignments(aligns, bam, options, part_num):
                 next_align = sorted_segs_list[1].copy()
 
                 graph = None
-                if options.graph is True:
+                if options.graph:
                     graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
                 sig = analyze_gap(current_align, next_align, bam, options)
                 if sig is not None:
@@ -263,7 +265,7 @@ def analyze_alignments(aligns, bam, options, part_num):
                 next_align = sorted_segs_list[-1].copy()
 
                 graph = None
-                if options.graph is True:
+                if options.graph:
                     graph = generate_graph(current_align, next_align, [], options.min_sv_size, whole_read_seq, options.genome, qname)
                 sig = analyze_gap(current_align, next_align, bam, options)
                 if sig is not None:

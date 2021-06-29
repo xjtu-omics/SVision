@@ -245,14 +245,18 @@ def cluster_original_callset(callset_path, out_path, sample_path, cluster_out_fi
 
 
 
-def merge_split_vcfs(in_dir, merged_vcf_path, ref_path, max_score, min_score, spec_chroms, min_support):
+def merge_split_vcfs(in_dir, merged_vcf_path, max_score, min_score, spec_chroms, options):
+
+    ref_path = options.genome
+    min_support = options.min_support
+
     files = os.listdir(in_dir)
 
     merged_vcf = open(merged_vcf_path, 'w')
     from src.version import __version__
     # Write header lines
     print("##fileformat=VCFv4.3", file=merged_vcf)
-    print("##source=DeepSV v{0}".format(__version__) , file=merged_vcf)
+    print("##source=SVision v{0}".format(__version__) , file=merged_vcf)
 
     ref = pysam.FastaFile(ref_path)
     chroms = ref.references

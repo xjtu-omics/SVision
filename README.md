@@ -67,7 +67,7 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 -s MIN_SUPPORT        Min support read number for an SV [1]
 -c CHROM              Specific region to detect, format: chr1:xxx-xxx or 1:xxx-xxx
 --hash          Activate hash table to align unmapped sequences
---qnames    Report support names for each events
+--qname    Report support names for each events
 --cluster     Cluster calls that might occur together
 --graph        Report graph for events
 --contig              Activate contig mode
@@ -75,7 +75,7 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 
 ```--hash``` enables kmer based alignment for unmapped sequences. 
 
-```--graph``` enables the program to create the CSV graph in GFA format. This might increase the running time for high-coverage sequencing (>50X).
+```--graph``` enables the program to create the CSV graph in GFA format. This function requires ```--qname``` enabled.
 
 ```--contig``` is used for calling from assemblies, which currently uses minimap2 aligned BAM file as input.
 
