@@ -294,7 +294,7 @@ def analyze_alignments(aligns, bam, options, part_num):
                     # segs between cur and next is help aligns
                     help_aligns = sorted_segs_list[current_index + 1: next_index]
                     graph = None
-                    if options.graph is True:
+                    if options.graph:
                         if i != len(all_main_align) - 1 - 1:
                             graph = generate_graph(current_align, next_align, help_aligns.copy(), options.min_sv_size, whole_read_seq, options.genome, qname, False)
                         else:

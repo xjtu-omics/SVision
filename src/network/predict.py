@@ -225,7 +225,7 @@ class Predict:
                     bkp_len = int(split_item[9])
                     mechanism = split_item[8]
 
-                    # # SVision v1.0.1. ADD, Fix bug: remove wrong 'INV' prediction
+                    # # v1.0.1. ADD, Fix bug: remove wrong 'INV' prediction
                     forward = split_item[7]
                     if forward == 'True' and predict_value[i] == 2:
                         continue
@@ -273,6 +273,7 @@ class Predict:
                     #         reads_dict[read_num].append([predict_value[i], [bkp_start, bkp_end, bkp_len]])
 
                     # # not allow same predicted types
+
                     if "m" not in read_num:
                         if predict_value[i] == 0 or predict_value[i] == 1:
                             continue

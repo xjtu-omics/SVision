@@ -28,8 +28,12 @@ conda install -c conda-forge tensorflow==1.14.0
 Step3: Install SVision from source
 
 ```
+git clone https://github.com/xjtu-omics/SVision.git
+cd SVision
 python setup.py install
 ```
+
+**Note:** Please ensure numpy is not installed before opencv installation, otherwise it will cause conflicts.
 
 The Pip and Conda install would be available after the **-beta* version.
 
@@ -75,7 +79,7 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 
 ```--hash``` enables kmer based alignment for unmapped sequences. 
 
-```--graph``` enables the program to create the CSV graph in GFA format. This function requires ```--qname``` enabled.
+```--graph``` enables the program to create the CSV graph in GFA format. This function requires ```--qname``` enabled as well.
 
 ```--contig``` is used for calling from assemblies, which currently uses minimap2 aligned BAM file as input.
 
@@ -95,12 +99,11 @@ Filters used in the output.
 
 We add extra attributes in the ```INFO``` column of VCF format for SVision detected structural variants.
 
-```BRPKS```: The CNN recognized breakpoint junctions through tMOR.
+```BRPKS```: The CNN recognized internal structure of CSVs through tMOR.
 
-```GraphID```: The graph index used to indicate the graph structure, which requires ```--report_graph``` and is obtained by calculating isomorphic graphs. 
+```GraphID```: The graph index used to indicate the graph structure, which requires ```--graph``` and is obtained by calculating isomorphic graphs. 
 The ID for simple SVs is -1. 
 
-```VAF```: The estimated variant allele fraction, which is calculated by DV/DR. Note that SVision does not calculate the genotypes in the current version.
 
 ### CSV graph 
 

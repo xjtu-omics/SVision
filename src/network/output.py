@@ -5,8 +5,11 @@ import collections
 import pysam
 import numpy as np
 from collections import Counter
+
+from src.network.genotype import genotyper
 from src.network.annotation import parse_trf, parse_rpmask
 import multiprocessing
+
 def cal_new_cluster(item_list):
     """
     Given a list of items in vcf, this function merge them together
@@ -282,7 +285,7 @@ def merge_split_vcfs(in_dir, merged_vcf_path, max_score, min_score, spec_chroms,
     print("##INFO=<ID=BKPS,Number=.,Type=String,Description=\"Possible SV breakpoints in this region\">", file=merged_vcf)
     print("##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Possible SV types in this region\">", file=merged_vcf)
     print("##INFO=<ID=SUPPORT,Number=1,Type=String,Description=\"SV support number in this region\">", file=merged_vcf)
-    print("##INFO=<ID=VAF,Number=1,Type=String,Description=\"SV allele frequency in this region\">", file=merged_vcf)
+    # print("##INFO=<ID=VAF,Number=1,Type=String,Description=\"SV allele frequency in this region\">", file=merged_vcf)
     print("##INFO=<ID=READS,Number=.,Type=String,Description=\"SV support read names in this region\">", file=merged_vcf)
     print("##INFO=<ID=GraphID,Number=1,Type=String,Description=\"The corresponding graph id\">", file=merged_vcf)
 
@@ -290,7 +293,8 @@ def merge_split_vcfs(in_dir, merged_vcf_path, max_score, min_score, spec_chroms,
     print("##FORMAT=<ID=DR,Number=1,Type=Integer,Description=\"high-quality reference reads\">", file=merged_vcf)
     print("##FORMAT=<ID=DV,Number=1,Type=Integer,Description=\"high-quality variant reads\">", file=merged_vcf)
 
-    print("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT", file=merged_vcf)
+    ## V1.3.5 change VCF header
+    print(f"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t{options.sample}", file=merged_vcf)
 
     id_num = -1
     for chrom in spec_chroms:
@@ -457,12 +461,12 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
 
     if len(region_potential_svtypes) > 0:
 
-
-        avg_predict_score = (1 - round(np.mean(predict_scores), 2)) * 100
+        mean_score = np.mean(predict_scores)
+        avg_predict_score = (1 - round(mean_score, 2)) * 100
         all_support_reads = []
         all_mechanisms = []
         all_support_num = []
-        all_vaf = []
+        # all_vaf = [] ## v1.3.5 removed
         all_sv_types = []
         all_sv_bkps = []
         all_sig_scores = []
@@ -471,7 +475,7 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
         chr = region_split[0]
         start = int(region_split[1])
         end = int(region_split[2])
-        coverage = int(region_split[3])
+        # coverage = int(region_split[3])
         length = end - start
 
         # # collect each sv's info
@@ -480,16 +484,16 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
             sv_type = sv[0]
             sv_num = len(sv[1])
             sv_bkps = sv[2]
-            if coverage == 0:
-                vaf = 1.0
-            else:
-                vaf = round(len(sv[1]) / coverage, 2)
+            # if coverage == 0:
+            #     vaf = 1.0
+            # else:
+            #     vaf = round(len(sv[1]) / coverage, 2)
 
             # save this sv's info
             all_sv_types.append(sv_type)
 
             all_support_num.append(str(sv_num))
-            all_vaf.append(str(vaf))
+            # all_vaf.append(str(vaf))
             all_sv_bkps.append(sv_bkps)
 
             cur_support_reads = []
@@ -537,21 +541,21 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
             svsupp_info = "SUPPORT=" + all_support_num[i]
             svbkps_info = "BKPS="
 
-            # Deepsv v1.1.6. Add
-            if float(all_vaf[i]) > 1:
-                all_vaf[i] = '1'
-            svvaf_info = "VAF=" + all_vaf[i]
+            # v1.1.6. Add. v1.3.5 removed in the output
+            # if float(all_vaf[i]) > 1:
+            #     all_vaf[i] = '1'
+            # svvaf_info = "VAF=" + all_vaf[i]
 
-            svreads_info = "READS="
-            mechanism_info = 'MECHANISM='
 
             svsig_scores = all_sig_scores[i]
 
-            mechanisms = all_mechanisms[i]
-            most_mechanism = Counter(mechanisms).most_common(1)[0][0]
-            mechanism_info += most_mechanism
+            ## v1.3.5 removed
+            # mechanism_info = 'MECHANISM='
+            # mechanisms = all_mechanisms[i]
+            # most_mechanism = Counter(mechanisms).most_common(1)[0][0]
+            # mechanism_info += most_mechanism
 
-
+            svreads_info = "READS="
             for j in range(len(all_support_reads[i])):
                 read_name = all_support_reads[i][j]
                 if j == 0:
@@ -582,7 +586,7 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
             svtype_info = "SVTYPE=" + '+'.join(refined_type)
             # End Add
 
-            # SVision v1.1.1 Modify.
+            ## v1.1.1 Modify.
             # classify SV to SV or CSV
             if len(refined_type) >= 2:
                 new_type = '<CSV>'
@@ -593,28 +597,34 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
             # if options.mechanism:
             #     info = "END={0};SVLEN={1};{2};{3};{4};{5};{6};{7}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info, svreads_info, mechanism_info)
             # else:
+
             if options.qname:
-                info = "END={0};SVLEN={1};{2};{3};{4};{5};{6}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info, svreads_info)
+                info = "END={0};SVLEN={1};{2};{3};{4};{5}".format(end, length, svtype_info, svsupp_info, svbkps_info, svreads_info)
             else:
-                info = "END={0};SVLEN={1};{2};{3};{4};{5}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info)
+                info = "END={0};SVLEN={1};{2};{3};{4}".format(end, length, svtype_info, svsupp_info, svbkps_info)
             # End Add
 
             # SVision v1.1.6, ADD. report GT
-            ## TODO: add new functions for genotyping
-            vaf = float(all_vaf[i])
-            if vaf > 0.8:
-                GT='1/1'
-            elif vaf > 0.3:
-                GT = '0/1'
-            elif vaf >= 0:
-                GT = '0/0'
-            else:
-                GT = './.'
-            DV = int(all_support_num[i])
-            DR = round(DV / (vaf + 0.001)) - DV
+            # vaf = float(all_vaf[i])
+            # if vaf > 0.8:
+            #     GT='1/1'
+            # elif vaf > 0.3:
+            #     GT = '0/1'
+            # elif vaf >= 0:
+            #     GT = '0/0'
+            # else:
+            #     GT = './.'
+            # DV = int(all_support_num[i])
+            # DR = round(DV / (vaf + 0.001)) - DV
+            # Add, End
+
+            ## v1.3.5, ADD report GT
+            candidate = (chr, start, end, refined_type)
+            GT, DV, DR = genotyper(candidate, all_support_reads[i], new_type, options)
+            # End ADD
 
             gt_format = 'GT:DR:DV\t{0}:{1}:{2}'.format(GT, DR, DV)
-            # Add, End
+
 
             line = chr + '\t' + str(start) + '\t' + '0' + '\t' + 'N' + '\t' + new_type + '\t' + str(sum_score) + '\t' + filter_type + '\t' + info + '\t' + gt_format
 

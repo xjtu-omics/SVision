@@ -507,6 +507,7 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
     sample = options.sample
     min_support = options.min_support
 
+
     # svision v1.2.1 add
     graph_vcf = open(os.path.join(out_path, "{0}.svision.s{1}.graph.vcf".format(sample, min_support)), 'w')
     # end
@@ -521,11 +522,15 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
     vcf_file = pysam.VariantFile(vcf_path)
     graph_vcf.write(str(vcf_file.header))
 
+    # graph_vcf = pysam.VariantFile(os.path.join(out_path, "{0}.svision.s{1}.graph.vcf".format(sample, min_support)), 'w', header=vcf_header)
+
     for record in vcf_file:
 
+        GT = record.samples[sample]['GT']
+        DV = record.samples[sample]['DV']
+        DR = record.samples[sample]['DR']
+
         cnt += 1
-
-
         chr = record.contig
         start = record.start + 1
         end = record.stop
@@ -539,17 +544,17 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
         if 'CSV' not in str(record):
             # SVision v1.2.1, ADD. r
             # # add graph id to vcf info column, we need recalculate GT info because pysam does not output GT
-            vaf = float(record.info['VAF'])
-            if vaf > 0.8:
-                GT = '1/1'
-            elif vaf > 0.3:
-                GT = '0/1'
-            elif vaf >= 0:
-                GT = '0/0'
-            else:
-                GT = './.'
-            DV = int(record.info['SUPPORT'])
-            DR = round(DV / (vaf + 0.001)) - DV
+            # vaf = float(record.info['VAF'])
+            # if vaf > 0.8:
+            #     GT = '1/1'
+            # elif vaf > 0.3:
+            #     GT = '0/1'
+            # elif vaf >= 0:
+            #     GT = '0/0'
+            # else:
+            #     GT = './.'
+            # DV = int(record.info['SUPPORT'])
+            # DR = round(DV / (vaf + 0.001)) - DV
 
             gt_format = 'GT:DR:DV\t{0}:{1}:{2}'.format(GT, DR, DV)
             graph_vcf.write(str(record).strip() + ';GraphID=-1'+ '\t' + gt_format + '\n')
@@ -598,17 +603,17 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
 
         # SVision v1.2.1, ADD. r
         # # add graph id to vcf info column, we need recalculate GT info because pysam does not output GT
-        vaf = float(record.info['VAF'])
-        if vaf > 0.8:
-            GT = '1/1'
-        elif vaf > 0.3:
-            GT = '0/1'
-        elif vaf >= 0:
-            GT = '0/0'
-        else:
-            GT = './.'
-        DV = int(record.info['SUPPORT'])
-        DR = round(DV / (vaf + 0.001)) - DV
+        # vaf = float(record.info['VAF'])
+        # if vaf > 0.8:
+        #     GT = '1/1'
+        # elif vaf > 0.3:
+        #     GT = '0/1'
+        # elif vaf >= 0:
+        #     GT = '0/0'
+        # else:
+        #     GT = './.'
+        # DV = int(record.info['SUPPORT'])
+        # DR = round(DV / (vaf + 0.001)) - DV
 
         gt_format = 'GT:DR:DV\t{0}:{1}:{2}'.format(GT, DR, DV)
         graph_vcf.write(str(record).strip() + ';GraphID={0}'.format(graph_id) + '\t' + gt_format + '\n')

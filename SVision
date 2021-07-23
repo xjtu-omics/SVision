@@ -79,14 +79,23 @@ def parse_arguments(arguments = sys.argv[1:]):
                                 help='Clustering maximum distance for a partition (default: %(default)s)')
 
 
-    hash_params = parser.add_argument_group("Hash table parameters")
-    hash_params.add_argument("--k_size", type=int, default=10, help='Size of kmer (default: %(default)s)')
-    hash_params.add_argument("--min_accept", type=int, default=50, help='Min match length to accept (default: %(default)s)')
-    hash_params.add_argument("--max_hash_len", type=int, default=256, help='Max unmapped length to hashtable (default: %(default)s)')
-
 
     predict_params = parser.add_argument_group("Predict parameters")
     predict_params.add_argument("--batch_size", type=int, default=128, help='Batch size for the CNN prediction model (default: %(default)s)')
+
+    genotype_params = parser.add_argument_group("Genotype parameters")
+    genotype_params.add_argument('--min_gt_depth',type=int, default=4, help='Minimum reads required for genotyping (default: %(default)s)')
+    genotype_params.add_argument('--homo_thresh', type=float, default=0.8,
+                                 help='Minimum variant allele frequency to be called as homozygous (default: %(default)s)')
+    genotype_params.add_argument('--hete_thresh', type=float, default=0.2,
+                                 help='Minimum variant allele frequency to be called as heterozygous (default: %(default)s)')
+
+    hash_params = parser.add_argument_group("Hash table parameters")
+    hash_params.add_argument("--k_size", type=int, default=10, help='Size of kmer (default: %(default)s)')
+    hash_params.add_argument("--min_accept", type=int, default=50,
+                             help='Min match length to accept (default: %(default)s)')
+    hash_params.add_argument("--max_hash_len", type=int, default=1000,
+                             help='Max unmapped length to hashtable (default: %(default)s)')
 
     options = parser.parse_args(arguments)
 
@@ -103,7 +112,7 @@ if __name__ == '__main__':
         os.mkdir(work_dir)
 
     ## v1.3.5 Create new log file
-    log_format = logging.Formatter("%(asctime)s [%(levelname)]  %(message)s")
+    log_format = logging.Formatter("%(asctime)s [%(levelname)-7.7s]  %(message)s")
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
 
@@ -176,7 +185,7 @@ if __name__ == '__main__':
     # chroms = ['chr20']
     if len(chroms) == 0:
         # print('[ERROR]: No mapped reads in this bam. Exit!')
-        logging.error("No mapped reads in the BAM, please check your input!")
+        logging.error("No mapped reads in the BAM, please check your reference input!")
         exit()
 
     start_time = datetime.datetime.now()
