@@ -211,8 +211,9 @@ if __name__ == '__main__':
     chrom_split_files = {}
     process_pool = multiprocessing.Pool(processes=options.thread_num)
     pool_rets = []
+    part_num = 0
+    ## Processing whole genomes
     if refine_flag == 0:
-
         # traverse chroms to collect signatures and clusters
         for chrom in chroms:
 
@@ -222,7 +223,6 @@ if __name__ == '__main__':
             # # END
 
             ref_len = aln_file.get_reference_length(chrom)
-            part_num = 0
 
             if options.contig:
                 window_size = ref_len
@@ -244,8 +244,11 @@ if __name__ == '__main__':
                     # End MODIFY
 
                     part_num += 1
+
+    ## Processing a given region
     else:
         chrom = chroms[0]
+        chrom_split_files[chrom] = os.path.join(segments_out_path, "{}.segments.{}.bed ".format(chrom, part_num))
         pool_rets.append(
             [process_pool.apply_async(run_collection.run_refine, (options, sample_path, chrom, start, end)),
              chrom, start, end])
