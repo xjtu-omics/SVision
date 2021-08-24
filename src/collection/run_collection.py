@@ -25,6 +25,7 @@ def run_detect(options, sample_path, chrom, part_num, window_size):
         # # collect signatures
         sv_signatures = analyze_alignments(aligns, aln_file, options, part_num)
 
+
         # # partition and clusters signatures to get cluster info
         clusters = partition_and_cluster(sv_signatures, fai_file, genome_file, chrom, sample_path, options)
         logging.info('[Processing] {0}-{1}, segments collected: {2}'.format(part_num * window_size, (part_num + 1) * window_size, len(sv_signatures)))

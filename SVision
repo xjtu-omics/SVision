@@ -93,9 +93,9 @@ def parse_arguments(arguments = sys.argv[1:]):
     hash_params = parser.add_argument_group("Hash table parameters")
     hash_params.add_argument("--k_size", type=int, default=10, help='Size of kmer (default: %(default)s)')
     hash_params.add_argument("--min_accept", type=int, default=50,
-                             help='Min match length to accept (default: %(default)s)')
+                             help='Minimum match length for realignment (default: %(default)s)')
     hash_params.add_argument("--max_hash_len", type=int, default=1000,
-                             help='Max unmapped length to hashtable (default: %(default)s)')
+                             help='Maximum length of unmapped sequence length for realignment (default: %(default)s)')
 
     options = parser.parse_args(arguments)
 
@@ -211,12 +211,12 @@ if __name__ == '__main__':
     chrom_split_files = {}
     process_pool = multiprocessing.Pool(processes=options.thread_num)
     pool_rets = []
-    part_num = 0
+
     ## Processing whole genomes
     if refine_flag == 0:
         # traverse chroms to collect signatures and clusters
         for chrom in chroms:
-
+            part_num = 0
             # SVision v1.3.5 add. init chr split files. this step is to make sure that the out vcf is sorted by chrom and cords
             if chrom not in chrom_split_files.keys():
                 chrom_split_files[chrom] = ""
@@ -247,6 +247,7 @@ if __name__ == '__main__':
 
     ## Processing a given region
     else:
+        part_num = 0
         chrom = chroms[0]
         chrom_split_files[chrom] = os.path.join(segments_out_path, "{}.segments.{}.bed ".format(chrom, part_num))
         pool_rets.append(
@@ -284,7 +285,7 @@ if __name__ == '__main__':
     cost_time = (end_time_collect - start_time).seconds
     logging.info("[Coding finished]: Collect segment signatures, Cost time: " + str(cost_time))
 
-    logging.info('\n****************** Step2 CNN prediction ******************')
+    # logging.info('\n****************** Step2 CNN prediction ******************')
     # # begin to predict types
     def predict_one_chrom(chrom, predict_results_dir, options):
         try:
@@ -326,13 +327,14 @@ if __name__ == '__main__':
     cost_time = (end_time_predict - end_time_collect).seconds
     logging.info("[Prediction finished]: Predicting types, Cost time: " + str(cost_time))
 
-    # # begin to score SV and merge chrom's results together
+    # begin to score SV and merge chrom's results together
     max_score, min_score = cal_scores_max_min(predict_results_dir)
     merged_vcf_path = os.path.join(options.out_path, "{0}.svision.s{1}.vcf".format(options.sample, options.min_support))
     merge_split_vcfs(predict_results_dir, merged_vcf_path, max_score, min_score, chroms, options)
 
-    # # the following: run repeatmasker and trf to annotate TE and VNTR, non use for current version, but in v2.0
-    # # # analyse mechanism
+
+    # the following: run repeatmasker and trf to annotate TE and VNTR, non use for current version, but in v2.0
+    # # analyse mechanism
     # if options.mechanism == True:
     #     print("[Additional Func: Start]: Starting ananlyze mechanim......" )
     #     mechanism_dir = os.path.join(work_dir, 'mechanism')
@@ -340,7 +342,8 @@ if __name__ == '__main__':
     #         os.mkdir(mechanism_dir)
     #     analyze_mechanism(merged_vcf_path, mechanism_dir, options)
 
-    # # cluster original callset if required
+    # cluster original callset if required
+
     if options.cluster:
         logging.info("[Additional Func: cluster] Starting cluster original callset......")
         cluster_out_file = os.path.join(work_dir, "{0}.svision.s{1}.clusterd.vcf".format(options.sample, options.min_support))
@@ -364,7 +367,7 @@ if __name__ == '__main__':
         cost_time = (end_time_graph - end_time_predict).seconds
         logging.info("[Graph creation finished] Generate graphs, Cost time: " + str(cost_time))
 
-    # # rm tmp folder
+    # rm tmp folder
     # shutil.rmtree(clusters_out_path)
     shutil.rmtree(segments_out_path)
     shutil.rmtree(predict_results_dir)
@@ -374,6 +377,3 @@ if __name__ == '__main__':
     end_time_final = datetime.datetime.now()
     cost_time = (end_time_final - start_time).seconds
     logging.info("[All steps finished] Total Cost time: " + str(cost_time) + "s")
-
-
-# python SVision -o /mnt/e/data_more/CCS/HG00733/ngmlr/sv_call/test/ -b /mnt/e/data_more/CCS/HG00733/ngmlr/chr22.bam -m /mnt/d/Workspace/Projects/DeepSV/src/model_ft/svision-cnn-model.ckpt -g /mnt/d/Data/Bams/REF/GRCh38/GRCh38_chr1-x.fa -t 4 -n test --report_graph -s 5

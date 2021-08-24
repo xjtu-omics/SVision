@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # encoding: utf-8
-
+import logging
 
 from src.collection.classes import Signature
 import pysam
@@ -729,6 +729,7 @@ def analyze_between_aligns(primary, supplmentary, bam, options):
 
 
     if options.hash:
+
         # first find all the main segs' index
         main_segs_index = []
         all_segs = []
@@ -741,13 +742,14 @@ def analyze_between_aligns(primary, supplmentary, bam, options):
 
         # # hashtable segs between main_segs when there is no other segs between them
         for i in range(len(main_segs_index) - 1):
-
             # there is no others between then
             if main_segs_index[i + 1] - main_segs_index[i] == 1:
                 cur_main = sorted_all_segs[i].copy()
                 next_main = sorted_all_segs[i + 1].copy()
+
                 # and there is a gap on read
                 if next_main['q_start'] - cur_main['q_end'] >= options.min_sv_size:
+
                     distance_on_read = next_main['q_start'] - cur_main['q_end']
                     distance_on_ref = next_main['ref_start'] - cur_main['ref_end']
                     diff = abs(distance_on_read - distance_on_ref)
@@ -759,18 +761,16 @@ def analyze_between_aligns(primary, supplmentary, bam, options):
                         # fetch read and ref seq
                         read_start = cur_main['q_end']
                         read_end = next_main['q_start']
-                        read_seq = cur_main['read_seq'][read_start: read_end ]
+                        read_seq = cur_main['read_seq'][read_start: read_end]
 
                         ref_start = min(cur_main['ref_start'], next_main['ref_start'])
                         ref_end = max(cur_main['ref_end'], next_main['ref_end'])
                         ref_seq = fetch_ref_seq(options.genome, ref_chr, ref_start, ref_end)
 
                         # hashplot ins segment
-                        # print(len(read_seq))
                         if len(read_seq) < options.max_hash_len:
                             # print('---------', len(read_seq), len(ref_seq))
                             m_segs, o_segs = hashplot_unmapped(ref_seq, read_seq, options.k_size, options.min_accept)
-                            # print('done')
                             for seg in o_segs:
                                 tmp_dict = {'q_start': seg.xStart() + read_start if seg.forward() else seg.xEnd() + read_start,
                                             'q_end': seg.xEnd() + read_start if seg.forward() else seg.xStart() + read_start,
