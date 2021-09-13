@@ -153,10 +153,6 @@ if __name__ == '__main__':
         logging.error("This is not a coordinate sorted BAM file")
         exit()
 
-    # print('[Processing]: Bam file at ', sample_path)
-
-    # window_size = 10000000  # slip on the chrom
-
     # v1.3.5 added param
     window_size = options.window_size
     ## End ADD
@@ -175,19 +171,23 @@ if __name__ == '__main__':
             if mapped_num >= options.min_support and chrom in all_possible_chrs:
                 chroms.append(chrom)
     else:
-        refine_flag = 1
 
         region = options.chrom
         chroms = [str(region).split(':')[0]]
         cords = str(region).split(':')[1]
         start = int(cords.split('-')[0])
         end = int(cords.split('-')[1])
+
+        if end - start <= window_size:
+            refine_flag = 1
+
     # chroms = ['chr20']
     if len(chroms) == 0:
         # print('[ERROR]: No mapped reads in this bam. Exit!')
         logging.error("No mapped reads in the BAM, please check your reference input!")
         exit()
 
+    print(chroms, refine_flag)
     start_time = datetime.datetime.now()
 
     # clusters_out_path = os.path.join(options.out_path, 'clusters')
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     process_pool = multiprocessing.Pool(processes=options.thread_num)
     pool_rets = []
 
-    ## Processing whole genomes
+    ## Processing whole genomes or a given chromosome
     if refine_flag == 0:
         # traverse chroms to collect signatures and clusters
         for chrom in chroms:
@@ -245,7 +245,7 @@ if __name__ == '__main__':
 
                     part_num += 1
 
-    ## Processing a given region
+    # Processing a given region smaller than the processing window size
     else:
         part_num = 0
         chrom = chroms[0]
