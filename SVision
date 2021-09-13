@@ -187,7 +187,6 @@ if __name__ == '__main__':
         logging.error("No mapped reads in the BAM, please check your reference input!")
         exit()
 
-    print(chroms, refine_flag)
     start_time = datetime.datetime.now()
 
     # clusters_out_path = os.path.join(options.out_path, 'clusters')
