@@ -83,6 +83,8 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 
 ```--contig``` is used for calling from assemblies, which currently uses minimap2 aligned BAM file as input.
 
+**NOTE:** In V1.3.5, if the size of a given region (```-c```) is larger than the window size (```--window_size```, default is 10Mbp), SVision will process the whole chromosome.
+
 ## SVision output
 
 ### VCF
@@ -109,7 +111,7 @@ The ID for simple SVs is -1.
 
 #### CSV graph compare
 
-SVision classify the graph of each CSV instances by comparing their graph topologies. 
+SVision classify the graph of each CSV instances by comparing their graph topologies. This requires the ```--graph``` and ```--qname``` parameter activated.
 It will create two text (.txt) file along with the VCF output.
 
 1. ```sample.graph_exactly_match.txt```: Unique graphs for all CSV instances.
@@ -117,7 +119,6 @@ It will create two text (.txt) file along with the VCF output.
 
 #### Graph format
 
-The graph output requires ```--graph``` activated. 
 The below example is an CSV in rGFA format (node sequence is omitted for display purpose), which is detected by SVision at chr11:99,819,283-99,820,576 in HG00733. 
 The graph output is saved in separated files for each CSV events.
 
