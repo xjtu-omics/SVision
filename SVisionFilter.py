@@ -169,10 +169,10 @@ which is consisted of (default settings used to produce results in the publicati
     required.add_argument('-r', dest='ref', type=str, help='Path to the reference file in .fa or .fasta format')
     required.add_argument('-o', dest='outdir', type=os.path.abspath, help='Output directory of filtered calls and CSVs')
     required.add_argument('-i', dest='id', type=str, help='Comma separated graph id to exclude. (e.g 0,4)')
+    required.add_argument('-e', dest='region', type=os.path.abspath, help='Path to the BED file of exclude regions')
 
 
     optional = parser.add_argument_group("Optional parameters")
-    optional.add_argument('--region', type=os.path.abspath, help='Path to the BED file of exclude regions')
     optional.add_argument('--min_sr', type=int, default=5, help='Filtering events by supporting reads (default: %(default)s)')
     optional.add_argument('--max_sv_size', type=int, default=100000, help='Maximum event size to include (default: %(default)s)')
 
