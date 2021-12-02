@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 # encoding: utf-8
-
+import logging
 import numpy as np
+
 from scipy.cluster.hierarchy import linkage, fcluster
 # from sklearn.cluster import DBSCAN
 from src.collection.classes import Cluster, read_fai_file
@@ -12,7 +13,17 @@ def partition_and_cluster(signatures, fai_file, genome, chr, this_sample_path, o
 
     partitions = signature_partition(signatures, options.patition_max_distance)
 
-    clusters = cluster_partitions(partitions, fai_file, genome, this_sample_path, options)
+    print(f'Number of partitions: {len(partitions)}')
+
+    # sorted_partitions = sorted(partitions, key=lambda x:len(x), reverse=True)
+    # for partition in sorted_partitions:
+    #     print(len(partition))
+
+    # clusters = []
+    clusters = cluster_partitions(partitions, chr, fai_file, genome, this_sample_path, options)
+
+    # print(f'Number of clusters: {len(clusters)}')
+
     return clusters
 
 
@@ -46,23 +57,33 @@ def signature_partition(signatures, max_distance):
         if len(current_partition) > 0 and current_partition[-1].position_distance_to(signature) > max_distance:
             partitions.append(current_partition[:])
             current_partition = []
+
         current_partition.append(signature)
+
     if len(current_partition) > 0:
         partitions.append(current_partition[:])
 
     return partitions
 
-def cluster_partitions(partitions, fai_file, genome, this_sample_path, options):
+def cluster_partitions(partitions, chrom, fai_file, genome, this_sample_path, options):
     '''
     Using hierarchical clustering to cluster signatures in each partition
     :param partitions:
     :param options:
     :return:
     '''
-    fai_dict = read_fai_file(fai_file)
+    # fai_dict = read_fai_file(fai_file)
 
     clusters = []
     for partition in partitions:
+        ## hard cutoff to ignore partition at highly repetitive regions
+        if len(partition) > 100000:
+            partition_tstart = partition[0].tstart
+            partition_tend = partition[-1].tstart
+            logging.warning(f'Partition size large than 100,000, ranging from {chrom}:{partition_tstart}-{partition_tend}')
+
+            continue
+
         if len(partition) == 1:
             this_cluster = Cluster(partition, this_sample_path)
 

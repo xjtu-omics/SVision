@@ -149,6 +149,8 @@ def write_graph_to_file(graph, graph_out_file):
     nodes = graph.nodes
     edges = graph.edges
 
+    node_pos = set()
+
     # # output
     with open(graph_out_file, 'w') as fout:
         for node in nodes:
@@ -156,14 +158,17 @@ def write_graph_to_file(graph, graph_out_file):
             if 'I' in node.id:
                 if node.node_is_dup == True:
                     fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\tDP:S:{5}:{6}\n".format(node.id, node_seq, node.host, node.read_start, len(node_seq), node.dup_from, node.dup_from_cord))
+                    node_pos.add(node.dup_from_cord)
                 else:
                     fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\n".format(node.id, node_seq, node.host, node.read_start, len(node_seq)))
             else:
                 fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\n".format(node.id, node_seq, node.host, node.ref_start, len(node_seq)))
+                node_pos.add(node.ref_start)
 
         for edge in edges:
             fout.write("L\t{0}\t{1}\t{2}\t{3}\t0M\tSR:i:0\n".format(edge.node1, '-' if edge.node1_is_reverse else '+', edge.node2, '-' if edge.node2_is_reverse else '+'))
 
+    return list(node_pos)
 
 
 def graph_is_same_as(graph1, graph2, strict=False, symmetry=False):
@@ -569,7 +574,9 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
         # # find and write record's final graph
         record_final_graph = classify_graphs(record_graphs)[0]
         record_final_graph_path = os.path.join(gfa_path, '{}-{}-{}-{}-{}.gfa'.format(chr, start, end, id, sv_type))
-        write_graph_to_file(record_final_graph, record_final_graph_path)
+
+        ## V1.3.6, add breakpoint graph to VCF recrod
+        graph_brpks = write_graph_to_file(record_final_graph, record_final_graph_path)
 
         # # exactly matching
         target_gfa = '{}-{}-{}-{}-{}'.format(chr, start, end, id, sv_type)
@@ -594,7 +601,9 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
             graph_id = -1
             pass
 
-        main_info[-1] += f';GraphID={graph_id}'
+        ## V1.3.6, add graph id and graph breakpoint to VCF output
+        graph_brpks_out = ','.join([str(pos) for pos in graph_brpks])
+        main_info[-1] += f';GraphID={graph_id};GraphBRKPS={graph_brpks_out}'
         new_record_main_info = '\t'.join(main_info)
         new_record_out = new_record_main_info + '\t' + gt_info_out
         graph_vcf.write(new_record_out + '\n')

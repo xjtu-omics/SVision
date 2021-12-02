@@ -201,7 +201,7 @@ class Predict:
 
             sig_types = []
             predict_scores = []
-            logging.info('[Processing] Predicting ' + self.chrom)
+            logging.info('Predicting ' + self.chrom)
 
             for _ in range(val_batches_per_epoch):
                 batch_px, batch_py = batch_generator.next_batch(batch_size)

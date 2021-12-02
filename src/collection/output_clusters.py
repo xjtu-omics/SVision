@@ -88,7 +88,7 @@ def writer_cluster_to_file(clusters, chr, part_num, options):
         chr_segments_out_file.write(seg)
     chr_segments_out_file.close()
 
-    logging.info('[Processing] Write segments to: {0}'.format(chr + '.segments.' + str(part_num) + '.bed'))
+    # logging.info('[Processing] Write segments to: {0}'.format(chr + '.segments.' + str(part_num) + '.bed'))
 
 def proc_one_cluster(cluster, options):
     """

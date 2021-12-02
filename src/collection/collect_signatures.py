@@ -124,7 +124,7 @@ def analyze_alignments(aligns, bam, options, part_num):
 
     min_mapq = 0 if options.contig is True else options.min_mapq
 
-    all_possible_chrs = pysam.FastaFile(options.genome).references
+    all_possible_chrs = pysam.FastaFile(options.genome).references[0:24]
 
     # # collect reads's pm and sa
     reads_dict = {}
@@ -136,9 +136,6 @@ def analyze_alignments(aligns, bam, options, part_num):
         # # unmapped or secondary or low mapping quality, then pass this align
         if align.is_unmapped or align.is_secondary or align.mapq < min_mapq:
             continue
-
-        # if not align.is_supplementary and align.mapq < options.min_mapq:
-        #     continue
 
         # # align to a ref that not in genome reference
         align_chr = align.reference_name
@@ -156,19 +153,37 @@ def analyze_alignments(aligns, bam, options, part_num):
         else:
             reads_dict[align.qname].append(new_align)
 
+    # print(f'Number of high-quality reads in window: {len(reads_dict)}')
+
+    black_regions = {'chr1': [(143184831, 143275233)], 'chr16': [(46377798, 46418333)]}
+    mapper = bam.header.get('PG')[0]['ID']
 
     # traverse reads
     read_num = 0
     seg_signatures = []
+
     for qname in reads_dict.keys():
         # print('---------------------------', qname)
         # for align in reads_dict[qname]:
         #     print(align.reference_start, align.reference_end, align.query_alignment_start, align.query_alignment_end, align.is_supplementary, align.is_reverse)
 
+        this_qname_aligns = reads_dict[qname]
+        this_qname_chr = bam.get_reference_name(this_qname_aligns[0].reference_id)
+        filtered_query = False
+
+        ## Add V1.3.6, Handeling reads in two black regions for minimap2, enriched of SDs
+        if mapper == 'minimap2' and not options.contig and this_qname_chr in black_regions:
+            regions = black_regions[this_qname_chr]
+            filtered_query = filter_alignment_in(this_qname_aligns, regions)
+        if filtered_query:
+            continue
+
+        ## End Add
+
         # separate pm and sa
         pm_align = None
         supp_aligns = []
-        for align in reads_dict[qname]:
+        for align in this_qname_aligns:
             if not align.is_supplementary:
                 pm_align = align
             else:
@@ -225,8 +240,6 @@ def analyze_alignments(aligns, bam, options, part_num):
         elif len(sorted_segs_list) == 2:
 
             # debug_plot(sorted_segs_list, qname, options)
-
-
             current_align = sorted_segs_list[0].copy()
             next_align = sorted_segs_list[1].copy()
 
@@ -309,3 +322,11 @@ def analyze_alignments(aligns, bam, options, part_num):
     return seg_signatures
 
 # def analyze_multi_alignments():
+
+def filter_alignment_in(aligns, regions):
+
+    for align in aligns:
+        for region in regions:
+            if align.reference_start >= region[0] and align.reference_start <= region[1]:
+                return True
+    return False

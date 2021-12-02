@@ -11,46 +11,55 @@ SVision is a deep learning-based structural variants caller that takes aligned r
 SVision is free for non-commercial use by academic, government, and non-profit/not-for-profit institutions. A commercial version of the software is available and licensed through Xi’an Jiaotong University. 
 For more information, please contact with Jiadong Lin (jiadong324@stu.xjtu.edu.cn) or Kai Ye (kaiye@xjtu.edu.cn).
 
-## Install
+## Installation
 
-Step1: Create a python environment with conda
-
-```
-conda create -n svision-env python=3.6
-```
-Step2: Install required packages of specific versions
-
-```
-conda install -c bioconda pysam
-conda install -c conda-forge opencv==4.5.1
-conda install -c conda-forge tensorflow==1.14.0
-```
-Step3: Install SVision from source
+### Install from source
 
 ```
 git clone https://github.com/xjtu-omics/SVision.git
 cd SVision
+## Create a conda environment for SVision
+conda env create -f ./environment.yml 
+## Install from source
 python setup.py install
 ```
 
-**Note:** Please ensure numpy is not installed before opencv installation, otherwise it will cause conflicts.
+The Pip and Conda install would be available later.
 
-The Pip and Conda install would be available after the **-beta* version.
+### Docker
+
+#### Pull docker image
+
+```
+docker pull jiadongxjtu/svision:1.3.6
+```
+
+#### Run docker image
+
+```
+docker run jiadongxjtu/svision:1.3.6 SVision -h
+```
+
+**Note:** Please ensure you have the permission to write into docker.
+
 
 ## Usage
+
+Please visit our wiki page for [performance evaluation](https://github.com/xjtu-omics/SVision/wiki/Performance-evaluation).
+
+### Short usage
 
 ```
 SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>
 ```
-Check all parameters with
+
+#### Check all parameters with
 
 ```
 SVision -h
 ```
 
-Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more usage details.
-
-#### Input/output parameters
+Required Input/Ouput parameters
 
 ```
 -o OUT_PATH           Absolute path to output
@@ -65,109 +74,37 @@ Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for mor
 ```-m``` path to the pre-trained deep learning model *svision-cnn-model.ckpt* ([download link](https://drive.google.com/drive/folders/1j74IN6kPKEx9hy3aENx3zHYPUnyYWGvj?usp=sharing)). Please download all files and save them to your local directory.
 
 
-#### General parameters
-```
--t THREAD_NUM         Thread numbers [1]
--s MIN_SUPPORT        Min support read number for an SV [1]
--c CHROM              Specific region to detect, format: chr1:xxx-xxx or 1:xxx-xxx
---hash          Activate hash table to align unmapped sequences
---qname    Report support names for each events
---cluster     Cluster calls that might occur together
---graph        Report graph for events
---contig              Activate contig mode
-```
-
-```--hash``` enables kmer based alignment for unmapped sequences. 
-
-```--graph``` enables the program to create the CSV graph in GFA format. This function requires ```--qname``` enabled as well.
-
-```--contig``` is used for calling from assemblies, which currently uses minimap2 aligned BAM file as input.
-
-**NOTE:** In V1.3.5, if the size of a given region (```-c```) is larger than the window size (```--window_size```, default is 10Mbp), SVision will process the whole chromosome.
-
-## SVision output
-
-### VCF
-
-The SV ```ID``` column is given in the format of ```a_b```, where ```b``` indicates site ```a``` contains other type of SVs. 
-
-Filters used in the output.
-
-```Covered```: The entire SV is spanned by long-reads, producing the most confident calls.
-
-```Uncovered```: SV is partially spanned by long-reads, i.e. reads spanning one of the breakpoints.
-
-```Clustered```: SV is partially spanned by long-reads, but can be spanned through reads clusters.
-
-We add extra attributes in the ```INFO``` column of VCF format for SVision detected structural variants.
-
-```BRPKS```: The CNN recognized internal structure of CSVs through tMOR.
-
-```GraphID```: The graph index used to indicate the graph structure, which requires ```--graph``` and is obtained by calculating isomorphic graphs. 
-The ID for simple SVs is -1. 
+Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more usage and parameter details.
 
 
-### CSV graph 
+### Run demo data
 
-#### CSV graph compare
+The demo data is ./supports/HG00733.svision.demo.bam. 
+The HiFi whole genome sequencing data of [HG00733](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/HGSVC2/working/20190925_PUR_PacBio_HiFi/) is published on [Science](https://www.science.org/doi/10.1126/science.abf7117?url_ver=Z39.88-2003&rfr_id=ori:rid:crossref.org&rfr_dat=cr_pub%20%200pubmed).
 
-SVision classify the graph of each CSV instances by comparing their graph topologies. This requires the ```--graph``` and ```--qname``` parameter activated.
-It will create two text (.txt) file along with the VCF output.
+#### Run with graph option
 
-1. ```sample.graph_exactly_match.txt```: Unique graphs for all CSV instances.
-2. ```sample.graph_symmetry_match.txt```: Topological similar graph found from unique graphs.
+1. Download the reference genome GRCh38
 
-#### Graph format
-
-The below example is an CSV in rGFA format (node sequence is omitted for display purpose), which is detected by SVision at chr11:99,819,283-99,820,576 in HG00733. 
-The graph output is saved in separated files for each CSV events.
+2. Run SVision with your reference
 
 ```
-S	S1	SN:Z:chr11	SO:i:99819338	SR:i:0	LN:i:2990
-S	I0	SN:Z:m54329U_190827_173812/140708091/ccs	SO:i:15813	SR:i:0	LN:i:1113
-S	I1	SN:Z:m54329U_190827_173812/140708091/ccs	SO:i:16927	SR:i:0	LN:i:466
-S	I2	SN:Z:m54329U_190827_173812/140708091/ccs	SO:i:17400	SR:i:0	LN:i:377	DP:S:S1:99820198
-S	I3	SN:Z:m54329U_190827_173812/140708091/ccs	SO:i:17778	SR:i:0	LN:i:838
-S	I4	SN:Z:m54329U_190827_173812/140708091/ccs	SO:i:18617	SR:i:0	LN:i:61	DP:S:S0:99819276
-L	S0	+	I0	+	0M	SR:i:0
-L	I0	+	I1	+	0M	SR:i:0
-L	I1	+	I2	-	0M	SR:i:0
-L	I2	-	I3	+	0M	SR:i:0
-L	I3	+	I4	+	0M	SR:i:0
-L	I4	+	S1	+	0M	SR:i:0
+SVision -o ./output_dir -b ./supports/HG00733.svision.demo.bam -m /path/to/svision-cnn-model.ckpt -g ./reference.fa -n HG00733 -s 5 --graph --qname
 ```
 
-Besides the information included in standard [rGFA](https://github.com/lh3/gfatools/blob/master/doc/rGFA.md) format, 
-we add another ```DP:S``` column to indicate sequence with detected origins via local realignment, 
-such as node ```I2``` is duplicated from node ```S1```. 
+Please use the same parameter settings if you use the docker image.
 
-#### Graph genotyping
+3. Output files
 
-**Note**: This is a post-processing step that tries to validate the detected CSVs. 
+``` *.graph.vcf ``` The standard VCF output with CSV graph info columns.
 
-**Step1: Extract HiFi raw reads**
+```*.graph_exactly_match.txt ``` CSV graphs of exactly identical structure.
 
-```
-samtools view -b HG00733.ngmlr.sorted.bam chr11:99810000-99830000 > tmp.bam
-samtools fasta tmp.bam > tmp.fasta
-```
+```*.graph_symmetry_match.txt``` Identified isomorphic graphs from all CSV graphs.
 
-**Step2: Align with GraphAligner**
+```graphs``` The directory for CSV graph in rGFA format.
 
-Please check [GraphAligner](https://github.com/maickrau/GraphAligner) for the detailed usage.
-
-```
-GraphAligner -g chr11-99819283-99820576.gfa -f tmp.fasta -a aln.gaf -x vg
-```
-
-Example of CSV path supporting reads
-
-```
-m54329U_190827_173812/140708091/ccs     21668   0       21668   +       >S0>I0>I1<I2>I3>I4>S1
-m54329U_190617_231905/88145984/ccs      13612   0       13612   +       >S0>I0>I1<I2>I3>I4>S1
-m54329U_190617_231905/88145984/ccs      13612   0       13612   +       >S0>I0>I1<I2>I3>I4>S1
-```
-
+Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more details of output format. 
 
 ## Contact
 If you have any questions, please feel free to contact: jiadong66@stu.xjtu.edu.cn, songbowang125@163.com

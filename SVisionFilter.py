@@ -135,15 +135,19 @@ def run_filter(svision_vcf, svision_exact_graph, ref_fasta, exclude_file, exclud
     # Write high confident csvs
     df_high_conf_csvs.sort_values(by=['chrom_rank', 'start'], inplace=True)
     df_high_conf_csvs.drop('chrom_rank', 1, inplace=True)
-    df_high_conf_csvs.to_csv(outdir + "/{0}.HQ-CSVs.tsv".format(filtered_prefix), sep="\t", header=True, index=False)
+    df_high_conf_csvs.to_csv(outdir + "/{0}.Raw-CSVs.tsv".format(filtered_prefix), sep="\t", header=True, index=False)
 
-    print('SV after filtering {0}, containing {1} high-quality CSVs'.format(all_sv_num, len(high_conf_csv_list)))
+    print('SV after filtering {0}, containing {1} raw CSVs'.format(all_sv_num, len(high_conf_csv_list)))
 
 
 def main():
 
     ## Filtering for the results in the paper
-    # svision_vcf = '/Users/apple/SVision/HG00733/svision/HG00733.svision.s5.graph.vcf'
+    # svision_vcf = '/Users/apple/SVision/HG00733/svision/v136/HG00733_docker_test.svision.s5.graph.vcf'
+    # graph_dir = '/Users/apple/SVision/HG00733/svision/v136/graphs'
+    # hq_csv = '/Users/apple/SVision/HG00733/svision/v136/HG00733_docker_test.HQ-CSVs.tsv'
+    # hq_csv_vcf = '/Users/apple/SVision/HG00733/svision/v136/HG00733.HQ-CSVs.vcf'
+
     # svision_exact_graph = '/Users/apple/SVision/HG00733/svision/HG00733.graph_exactly_match.txt'
     # ref_fasta = "/Users/apple/Data/genome/GRCh38_full_analysis_set_plus_decoy_hla.fa"
     # exclude_file = "/Users/apple/Data/genome/grch38.exclude_regions_cen.bed"
@@ -153,10 +157,10 @@ def main():
     arguments = sys.argv[1:]
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description="""This is used to filter raw SVision calls and collects high-quality CSVs, 
+                                     description="""This is used to filter raw SVision calls and collects raw CSVs,
 which is consisted of (default settings used to produce results in the publication):
  1. SV length between 50bp and 100Kbp.
- 2. SV supported by at least 5 reads.                                    
+ 2. SV supported by at least 5 reads.
  3. SV detected in gapped regions.
  4. SV detected in low mapping quality regions, such as centromere specified by --region parameter.
  5. SV of partial graph representation because of read length limitation.
@@ -191,3 +195,64 @@ which is consisted of (default settings used to produce results in the publicati
 
 if __name__ == '__main__':
     main()
+
+'''
+def add_breakpoints(raw_vcf, hg_csvs, csv_vcf_out, graph_dir, sample):
+
+    hq_csv_list = []
+
+    for line in open(hg_csvs, 'r'):
+        entries = line.strip().split('\t')
+        csv_id = f'{entries[0]}-{entries[1]}-{entries[2]}-{entries[3]}'
+        hq_csv_list.append(csv_id)
+
+    csv_vcf = open(csv_vcf_out, 'w')
+
+    ## Add new header info
+    for line in open(raw_vcf, 'r'):
+        entries = line.strip().split('\t')
+        if '#' in line:
+            if entries[0] == '#CHROM':
+                break
+            print(line.strip(), file=csv_vcf)
+
+
+    print("##INFO=<ID=GraphBRPKS,Number=.,Type=String,Description=\"Breakpoint refined in CSV graph\">", file=csv_vcf)
+    print(f"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t{sample}", file=csv_vcf)
+
+    for line in open(raw_vcf, 'r'):
+        if '#' in line:
+            continue
+
+        entries = line.strip().split('\t')
+        chrom, start, id = entries[0], entries[1], entries[2]
+
+        info = entries[7]
+        info_tokens = info.split(';')
+        info_dict = {}
+
+        for token in info_tokens:
+            info_dict[token.split('=')[0]] = token.split('=')[1]
+
+        new_id = '{0}-{1}-{2}-{3}'.format(chrom, start, info_dict['END'], id)
+
+        if new_id in hq_csv_list:
+            gfa_pos = set()
+            gfa_file_name = '{0}-{1}'.format(new_id, info_dict['SVTYPE'])
+            for gfa_line in open(f'{graph_dir}/{gfa_file_name}.gfa', 'r'):
+                gfa_entries = gfa_line.strip().split('\t')
+                if gfa_entries[0] == 'S':
+                    ## duplicated insertion node
+                    if 'I' in gfa_entries[1] and gfa_entries[-1].split(':')[0] == 'DP':
+                        pos = gfa_entries[-1].split(':')[3]
+                        gfa_pos.add(pos)
+                    elif 'S' in gfa_entries[1]:
+                        pos = gfa_entries[4].split(':')[2]
+
+                        gfa_pos.add(pos)
+
+            gfa_pos_out = ','.join(list(gfa_pos))
+            new_info = f'{info};GraphBRKPS={gfa_pos_out}'
+
+            print(f'{chrom}\t{start}\t{id}\t{entries[3]}\t{entries[4]}\t{entries[5]}\t{entries[6]}\t{new_info}\t{entries[8]}\t{entries[9]}', file=csv_vcf)
+'''

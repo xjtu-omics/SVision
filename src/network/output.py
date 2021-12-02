@@ -289,6 +289,9 @@ def merge_split_vcfs(in_dir, merged_vcf_path, max_score, min_score, spec_chroms,
     print("##INFO=<ID=READS,Number=.,Type=String,Description=\"SV support read names in this region\">", file=merged_vcf)
     print("##INFO=<ID=GraphID,Number=1,Type=String,Description=\"The corresponding graph id\">", file=merged_vcf)
 
+    if options.graph:
+        print("##INFO=<ID=GraphBRPKS,Number=1,Type=String,Description=\"The breakpoint induced from CSV graph\">", file=merged_vcf)
+
     print("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">", file=merged_vcf)
     print("##FORMAT=<ID=DR,Number=1,Type=Integer,Description=\"high-quality reference reads\">", file=merged_vcf)
     print("##FORMAT=<ID=DV,Number=1,Type=Integer,Description=\"high-quality variant reads\">", file=merged_vcf)
@@ -483,6 +486,10 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
             # print(sv)
             sv_type = sv[0]
             sv_num = len(sv[1])
+
+            if sv_num < options.min_support:
+                continue
+
             sv_bkps = sv[2]
             # if coverage == 0:
             #     vaf = 1.0
@@ -535,6 +542,7 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
         #
         # """"""""""""""""""""""""""""""""""""""""""""""""""done here
         # # write each sv to file
+
         for i in range(len(all_sv_types)):
             # create INFO
             svtype_info = "SVTYPE=" + all_sv_types[i]
