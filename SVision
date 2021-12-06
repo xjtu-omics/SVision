@@ -473,7 +473,7 @@ if __name__ == '__main__':
         end_time_graph = datetime.datetime.now()
         cost_time = (end_time_graph - end_time_predict).seconds
 
-        os.system(f'rm {merged_vcf_path}')
+        os.remove(merged_vcf_path)
         logging.info("[Graph creation finished] Generate graphs, Cost time: " + str(cost_time))
 
     # rm tmp folder

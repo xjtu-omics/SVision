@@ -1,7 +1,8 @@
 <img src="https://github.com/xjtu-omics/SVision/tree/master/supports/svision-logo.png" alt="svision_logo" width="30%" height="30%" align=center/>
 
 
-SVision is a deep learning-based structural variants caller that takes aligned reads or contigs as input. Especially, SVision implements a targeted multi-objects recognition framework, detecting and characterizing both simple and complex structural variants from three-channel similarity images.
+SVision is a deep learning-based structural variants caller that takes aligned reads or contigs as input. 
+Especially, SVision implements a targeted multi-objects recognition framework, detecting and characterizing both simple and complex structural variants from three-channel similarity images.
 
 <img src="https://github.com/xjtu-omics/SVision/tree/master/supports/workflow.png" alt="SVision workflow" width="60%" height="60%" align=center/>
 
@@ -16,11 +17,13 @@ For more information, please contact with Jiadong Lin (jiadong324@stu.xjtu.edu.c
 ### Install from source
 
 ```
+## Get the source code
 git clone https://github.com/xjtu-omics/SVision.git
 cd SVision
 ## Create a conda environment for SVision
 conda env create -f ./environment.yml 
 ## Install from source
+conda activate svisionenv
 python setup.py install
 ```
 
@@ -71,7 +74,7 @@ Required Input/Ouput parameters
 
 ```-g``` path to the reference genome, the index file should under the same directory.
 
-```-m``` path to the pre-trained deep learning model *svision-cnn-model.ckpt* ([download link](https://drive.google.com/drive/folders/1j74IN6kPKEx9hy3aENx3zHYPUnyYWGvj?usp=sharing)). Please download all files and save them to your local directory.
+```-m``` path to the pre-trained deep learning model *svision-cnn-model.ckpt* ([external download link](https://drive.google.com/drive/folders/1j74IN6kPKEx9hy3aENx3zHYPUnyYWGvj?usp=sharing)).
 
 
 Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more usage and parameter details.
