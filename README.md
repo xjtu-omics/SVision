@@ -4,7 +4,7 @@
 SVision is a deep learning-based structural variants caller that takes aligned reads or contigs as input. 
 Especially, SVision implements a targeted multi-objects recognition framework, detecting and characterizing both simple and complex structural variants from three-channel similarity images.
 
-<div align=center><img width=60% height=60% src="https://github.com/zhaohh52/SVision/blob/master/supports/workflow.png"/></div> 
+<div align=center><img width=40% height=40% src="https://github.com/zhaohh52/SVision/blob/master/supports/workflow.png"/></div> 
 
 
 ## License
