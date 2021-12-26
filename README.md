@@ -1,10 +1,10 @@
-<div align=left><img width=30% height=30% src="https://github.com/zhaohh52/SVision/blob/master/supports/svision-logo.png"/></div>
+<div align=left><img width=30% height=30% src="https://github.com/xjtu-omics/SVision/blob/master/supports/svision-logo.png"/></div>
 
 
 SVision is a deep learning-based structural variants caller that takes aligned reads or contigs as input. 
 Especially, SVision implements a targeted multi-objects recognition framework, detecting and characterizing both simple and complex structural variants from three-channel similarity images.
 
-<div align=left><img width=60% height=60% src="https://github.com/zhaohh52/SVision/blob/master/supports/workflow.png"/></div> 
+<div align=left><img width=60% height=60% src="https://github.com/xjtu-omics/SVision/blob/master/supports/workflow.png"/></div> 
 
 
 ## License
@@ -27,7 +27,6 @@ conda activate svisionenv
 python setup.py install
 ```
 
-The Pip and Conda install would be available later.
 
 ### Docker
 
@@ -101,9 +100,9 @@ Please use the same parameter settings if you use the docker image.
 
 ``` *.graph.vcf ``` The standard VCF output with CSV graph info columns.
 
-```*.graph_exactly_match.txt ``` CSV graphs of exactly identical structure.
+```*.graph_exactly_match.txt ``` Identified isomorphic CSV graphs.
 
-```*.graph_symmetry_match.txt``` Identified isomorphic graphs from all CSV graphs.
+```*.graph_symmetry_match.txt``` Identified isomorphic graphs of from symmetric graph topologies.
 
 ```graphs``` The directory for CSV graph in rGFA format.
 
