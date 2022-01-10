@@ -47,7 +47,8 @@ docker run jiadongxjtu/svision:1.3.6 SVision -h
 
 ## Usage
 
-Please visit our wiki page for [performance evaluation](https://github.com/xjtu-omics/SVision/wiki/Performance-evaluation).
+Please visit our wiki page for [performance evaluation](https://github.com/xjtu-omics/SVision/wiki/Performance-evaluation) 
+and [SVisionUtil](https://github.com/jiadong324/SVisionUtils) for support scripts used in this study.
 
 ### Short usage
 
