@@ -48,7 +48,7 @@ docker run jiadongxjtu/svision:1.3.6 SVision -h
 ## Usage
 
 Please visit our wiki page for [performance evaluation](https://github.com/xjtu-omics/SVision/wiki/Performance-evaluation) 
-and [SVisionUtil](https://github.com/jiadong324/SVisionUtils) for support scripts used in this study.
+and [SVisionUtil](https://github.com/jiadong324/SVisionUtils) for support scripts and HG00733 calls used in this study.
 
 ### Short usage
 
@@ -103,7 +103,7 @@ Please use the same parameter settings if you use the docker image.
 
 ```*.graph_exactly_match.txt ``` Identified isomorphic CSV graphs.
 
-```*.graph_symmetry_match.txt``` Identified isomorphic graphs of from symmetric graph topologies.
+```*.graph_symmetry_match.txt``` Identified isomorphic graphs from symmetric graph topologies.
 
 ```graphs``` The directory for CSV graph in rGFA format.
 
