@@ -53,7 +53,7 @@ and [SVisionUtil](https://github.com/jiadong324/SVisionUtils) for support script
 ### Short usage
 
 ```
-SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path>
+SVision [parameters] -o <output path> -b <input bam path> -g <reference> -m <model path> -n <sample name>
 ```
 
 #### Check all parameters with
