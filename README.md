@@ -75,6 +75,7 @@ Required Input/Ouput parameters
 ```-g``` path to the reference genome, the index file should under the same directory.
 
 ```-m``` path to the pre-trained deep learning model *svision-cnn-model.ckpt* ([external download link](https://drive.google.com/drive/folders/1j74IN6kPKEx9hy3aENx3zHYPUnyYWGvj?usp=sharing)).
+**NOTE:** Please use *-m svision-cnn-model.ckpt* while running your data.
 
 
 Please check the [wiki](https://github.com/xjtu-omics/SVision/wiki) page for more usage and parameter details.
