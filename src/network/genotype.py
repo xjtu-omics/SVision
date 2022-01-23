@@ -14,14 +14,13 @@
 import pysam
 
 
-def genotyper(candidate, support_reads, flag, options):
+def genotyper(candidate, support_reads, options):
     gt = './.'
-
     homo_thresh = options.homo_thresh
     hete_thresh = options.hete_thresh
 
     bam = pysam.AlignmentFile(options.bam_path, 'r')
-    contig, start, end, type = candidate[0], candidate[1], candidate[2], candidate[3]
+    contig, start, end, svtype = candidate[0], candidate[1], candidate[2], candidate[3]
 
     contig_length = bam.get_reference_length(contig)
     aligns = bam.fetch(contig=contig, start=max(0, start-1000), stop=min(contig_length, end+1000))
@@ -43,23 +42,23 @@ def genotyper(candidate, support_reads, flag, options):
             continue
         aln_no += 1
 
-        if flag == '<CSV>':
-            support_ref_reads.add(current_alignment.query_name)
-        else:
-            if type == "DEL" or type == "INV":
+        if len(svtype) == 1:
+            if svtype[0] == "DEL" or svtype[0] == "INV":
                 minimum_overlap = min((end - start) / 2, 2000)
                 if (current_alignment.reference_start < (end - minimum_overlap) and current_alignment.reference_end > (end + 100) or
                         current_alignment.reference_start < (start - 100) and current_alignment.reference_end > (start + minimum_overlap)):
                     support_ref_reads.add(current_alignment.query_name)
 
-            if type == "INS" or type == "DUP":
+            if svtype[0] == "INS" or svtype[0] == "DUP":
                 if current_alignment.reference_start < (start - 100) and current_alignment.reference_end > (end + 100):
                     support_ref_reads.add(current_alignment.query_name)
+        else:
+            support_ref_reads.add(current_alignment.query_name)
 
     alt_no = len(support_alt_reads)
     ref_no = len(support_ref_reads)
 
-    if flag == '<CSV>':
+    if len(svtype) != 1:
         return gt, ref_no, alt_no
 
     if alt_no + ref_no >= options.min_gt_depth:

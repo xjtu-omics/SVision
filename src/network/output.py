@@ -628,7 +628,7 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
 
             ## v1.3.5, ADD report GT
             candidate = (chr, start, end, refined_type)
-            GT, DR, DV = genotyper(candidate, all_support_reads[i], new_type, options)
+            GT, DR, DV = genotyper(candidate, all_support_reads[i], options)
             # End ADD
 
             gt_format = 'GT:DR:DV\t{0}:{1}:{2}'.format(GT, DR, DV)
