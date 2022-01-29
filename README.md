@@ -27,24 +27,6 @@ conda activate svisionenv
 python setup.py install
 ```
 
-
-### Docker
-
-#### Pull docker image
-
-```
-docker pull jiadongxjtu/svision:1.3.6
-```
-
-#### Run docker image
-
-```
-docker run jiadongxjtu/svision:1.3.6 SVision -h
-```
-
-**Note:** Please ensure you have the permission to write into docker.
-
-
 ## Usage
 
 Please visit our wiki page for [performance evaluation](https://github.com/xjtu-omics/SVision/wiki/Performance-evaluation) 
