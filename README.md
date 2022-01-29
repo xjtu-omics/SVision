@@ -40,15 +40,13 @@ The HiFi whole genome sequencing data of [HG00733](http://ftp.1000genomes.ebi.ac
 
 #### Run with graph option
 
-1. Download the reference genome GRCh38
+1. Download the reference genome [GRCh38](https://drive.google.com/file/d/10q3hEroEpGw_wqv3qvg9omF4w2kPqDm9/view?usp=sharing)
 
-2. Run SVision with your reference
+2. Run SVision
 
 ```
 SVision -o ./output_dir -b ./supports/HG00733.svision.demo.bam -m /path/to/svision-cnn-model.ckpt -g ./reference.fa -n HG00733 -s 5 --graph --qname
 ```
-
-Please use the same parameter settings if you use the docker image.
 
 3. Output files
 
