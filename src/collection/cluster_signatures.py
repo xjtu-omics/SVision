@@ -13,7 +13,7 @@ def partition_and_cluster(signatures, fai_file, genome, chr, this_sample_path, o
 
     partitions = signature_partition(signatures, options.patition_max_distance)
 
-    print(f'Number of partitions: {len(partitions)}')
+    # print(f'Number of partitions: {len(partitions)}')
 
     # sorted_partitions = sorted(partitions, key=lambda x:len(x), reverse=True)
     # for partition in sorted_partitions:
