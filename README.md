@@ -14,6 +14,13 @@ For more information, please contact with Jiadong Lin (jiadong324@stu.xjtu.edu.c
 
 ## Installation
 
+
+### Operation systems
+
+* MacOS, Big Sur (V11.6)
+* Ubuntu (V20.04, including Windows Subsystem for Linux)
+* CentOS Linux (V7.6.1810)
+
 ### Install from source
 
 ```
