@@ -150,6 +150,8 @@ def write_graph_to_file(graph, graph_out_file):
     edges = graph.edges
 
     node_pos = set()
+    node_list = []
+    link_list = []
 
     # # output
     with open(graph_out_file, 'w') as fout:
@@ -165,10 +167,16 @@ def write_graph_to_file(graph, graph_out_file):
                 fout.write("S\t{0}\t{1}\tSN:Z:{2}\tSO:i:{3}\tSR:i:0\tLN:i:{4}\n".format(node.id, node_seq, node.host, node.ref_start, len(node_seq)))
                 node_pos.add(node.ref_start)
 
-        for edge in edges:
-            fout.write("L\t{0}\t{1}\t{2}\t{3}\t0M\tSR:i:0\n".format(edge.node1, '-' if edge.node1_is_reverse else '+', edge.node2, '-' if edge.node2_is_reverse else '+'))
+            node_list.append(node.id)
 
-    return list(node_pos)
+        for edge in edges:
+
+            fout.write("L\t{0}\t{1}\t{2}\t{3}\t0M\tSR:i:0\n".format(edge.node1, '-' if edge.node1_is_reverse else '+', edge.node2, '-' if edge.node2_is_reverse else '+'))
+            simple_edge = '{0}{1}{2}'.format(edge.node1, '-' if edge.node1_is_reverse else '+', edge.node2, '-' if edge.node2_is_reverse else '+')
+
+            link_list.append(simple_edge)
+
+    return list(node_pos), node_list, link_list
 
 
 def graph_is_same_as(graph1, graph2, strict=False, symmetry=False):
@@ -517,7 +525,7 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
     graph_vcf = open(os.path.join(out_path, "{0}.svision.s{1}.graph.vcf".format(sample, min_support)), 'w')
     # end
 
-    logging.info('Adding GraphID to VCF, output {0}'.format("{0}.svision.s{1}.graph.vcf".format(sample, min_support)))
+    logging.info('Adding GraphID, GFA INFO fields to VCF, output {0}'.format("{0}.svision.s{1}.graph.vcf".format(sample, min_support)))
 
     exactly_matching = {}
     symmetry_matching = {}
@@ -552,7 +560,7 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
         # if 'CSV' not in str(record) or 'Uncovered' in str(record) or int(record.info['SUPPORT']) < 5:
         if 'CSV' not in str(record):
             ## V1.3.5, fixed bugs in graph vcf output
-            main_info[-1] += ';GraphID=-1'
+            main_info[-1] += ';GraphID=-1;GFA_ID=.;GFA_S=.;GFA_L=.'
             new_record_main_info = '\t'.join(main_info)
             new_record_out = new_record_main_info + '\t' + gt_info_out
             graph_vcf.write(new_record_out + '\n')
@@ -576,7 +584,7 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
         record_final_graph_path = os.path.join(gfa_path, '{}-{}-{}-{}-{}.gfa'.format(chr, start, end, id, sv_type))
 
         ## V1.3.6, add breakpoint graph to VCF recrod
-        graph_brpks = write_graph_to_file(record_final_graph, record_final_graph_path)
+        graph_brpks, node_list, link_list = write_graph_to_file(record_final_graph, record_final_graph_path)
 
         # # exactly matching
         target_gfa = '{}-{}-{}-{}-{}'.format(chr, start, end, id, sv_type)
@@ -601,9 +609,13 @@ def collect_csv_same_format(gfa_path, vcf_path, options):
             graph_id = -1
             pass
 
-        ## V1.3.6, add graph id and graph breakpoint to VCF output
-        graph_brpks_out = ','.join([str(pos) for pos in graph_brpks])
-        main_info[-1] += f';GraphID={graph_id};GraphBRKPS={graph_brpks_out}'
+        ## V1.3.7, add GFA_ID, GFA_S, and GFA_L to VCF output
+        gfa_id = f'{chr}-{start}-{end}-{id}-{sv_type}'
+        node_str = ','.join(node_list)
+        link_list = ','.join(link_list)
+
+
+        main_info[-1] += f';GraphID={graph_id};GFA_ID={gfa_id};GFA_S={node_str};GFA_L={link_list}'
         new_record_main_info = '\t'.join(main_info)
         new_record_out = new_record_main_info + '\t' + gt_info_out
         graph_vcf.write(new_record_out + '\n')

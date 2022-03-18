@@ -282,18 +282,15 @@ def merge_split_vcfs(in_dir, merged_vcf_path, max_score, min_score, spec_chroms,
 
     print("##INFO=<ID=END,Number=1,Type=Integer,Description=\"End position of the SV described in this region\">", file=merged_vcf)
     print("##INFO=<ID=SVLEN,Number=1,Type=Integer,Description=\"Difference in length between REF and ALT alleles\">", file=merged_vcf)
-    print("##INFO=<ID=BKPS,Number=.,Type=String,Description=\"All breakpoints (length-start-end) in this region, where CSV might contain multiple breakpoints.\">", file=merged_vcf)
-    print("##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"CNN predicted SV type, containing INS, DEL, DUP, tDUP (tandem duplication) and INV\">", file=merged_vcf)
+    print("##INFO=<ID=BKPS,Number=.,Type=String,Description=\"Possible SV breakpoints in this region\">", file=merged_vcf)
+    print("##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"Possible SV types in this region\">", file=merged_vcf)
     print("##INFO=<ID=SUPPORT,Number=1,Type=String,Description=\"SV support number in this region\">", file=merged_vcf)
     # print("##INFO=<ID=VAF,Number=1,Type=String,Description=\"SV allele frequency in this region\">", file=merged_vcf)
     print("##INFO=<ID=READS,Number=.,Type=String,Description=\"SV support read names in this region\">", file=merged_vcf)
+    print("##INFO=<ID=GraphID,Number=1,Type=String,Description=\"The corresponding graph id\">", file=merged_vcf)
 
-    ## V1.3.7 change VCF header
     if options.graph:
-        print("##INFO=<ID=GraphID,Number=1,Type=String,Description=\"The corresponding graph id of isomorphic CSV graph structures\">", file=merged_vcf)
-        print("##INFO=<ID=GFA_FILE_PREFIX,Number=1,Type=String,Description=\"File name of CSV corresponding GFA file\">",file=merged_vcf)
-        print("##INFO=<ID=GFA_S,Number=1,Type=String,Description=\"Nodes contained in a CSV graph represented based on GFA format\">", file=merged_vcf)
-        print("##INFO=<ID=GFA_L,Number=1,Type=String,Description=\"Links contained in a CSV graph represented based on GFA format\">", file=merged_vcf)
+        print("##INFO=<ID=GraphBRPKS,Number=1,Type=String,Description=\"The breakpoint induced from CSV graph\">", file=merged_vcf)
 
     print("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">", file=merged_vcf)
     print("##FORMAT=<ID=DR,Number=1,Type=Integer,Description=\"high-quality reference reads\">", file=merged_vcf)

@@ -1,0 +1,4 @@
+src
+src/collection
+src/network
+src/segmentplot
