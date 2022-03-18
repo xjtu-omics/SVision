@@ -72,10 +72,11 @@ All outputs are under directory /home/user/svision_out, including
 
 * ```*.graph_symmetry_match.txt``` Identified isomorphic graphs from symmetric graph topologies.
 
-* ```graphs``` The directory for CSV graph in rGFA format.
+* ```graphs``` The directory for CSV graph in GFA format.
 
 In the VCF file, you will find the insertion-inversion-insertion event at chr9:74,283,222-74,283,473, and the diagram of this event is shown in Extended Data Fig.9 in our paper.
 
+Please use GFA_FILE_ID to find a CSV's corresponding GFA file under ./graphs
 
 ### Run your own data
 
