@@ -34,9 +34,22 @@ conda activate svisionenv
 python setup.py install
 ```
 
+### Use docker
+
+```
+docker pull jiadongxjtu/svision:1.3.6
+```
+
+
 ## Usage
 
 We provided support scripts used in this study to filter SVision calls at [SVisionUtil](https://github.com/jiadong324/SVisionUtils), please follow instructions to filter your own calls.
+
+### Run with docker
+
+```
+docker run jiadongxjtu/svision:1.3.6 SVision -h
+```
 
 ### Run demo data
 
