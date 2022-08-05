@@ -37,7 +37,7 @@ python setup.py install
 ### Use docker
 
 ```
-docker pull jiadongxjtu/svision:1.3.6
+docker pull jiadongxjtu/svision:latest
 ```
 
 
@@ -48,7 +48,7 @@ We provided support scripts used in this study to filter SVision calls at [SVisi
 ### Run with docker
 
 ```
-docker run jiadongxjtu/svision:1.3.6 SVision -h
+docker run jiadongxjtu/svision:latest SVision -h
 ```
 
 ### Run demo data
