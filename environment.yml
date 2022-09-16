@@ -15,4 +15,4 @@ dependencies:
     - opencv-python-headless==4.5.4.58
     - beautifulsoup4==4.9.3
     - intervaltree==3.1.0
-    - pyvcf==0.6.8
+    - pyvcf
