@@ -7,10 +7,12 @@ Especially, SVision implements a targeted multi-objects recognition framework, d
 <div align=left><img width=80% height=80% src="https://github.com/xjtu-omics/SVision/blob/master/supports/workflow.png"/></div> 
 
 
-## License
+## License and citation
 
 SVision is free for non-commercial use by academic, government, and non-profit/not-for-profit institutions. A commercial version of the software is available and licensed through Xi’an Jiaotong University. 
-For more information, please contact with Jiadong Lin (jiadong324@stu.xjtu.edu.cn) or Kai Ye (kaiye@xjtu.edu.cn).
+For more information, please contact with Jiadong Lin (jiadong66@stu.xjtu.edu.cn) or Kai Ye (kaiye@xjtu.edu.cn).
+
+Please cite our paper "Lin, J., Wang, S., Audano, P.A. et al. SVision: a deep learning approach to resolve complex structural variants. Nat Methods (2022)." [PDF](https://www.nature.com/articles/s41592-022-01609-w.pdf)
 
 ## Installation
 
