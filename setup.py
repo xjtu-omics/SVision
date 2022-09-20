@@ -34,7 +34,9 @@ setup(
 
       zip_safe=False,
       python_requires='>=3.6',
-      # install_requires=['scipy', 'beautifulsoup4', 'numpy==1.16'],
+      install_requires=['scipy==1.5.4', 'numpy==1.16.4', 'tensorflow==1.14.0',
+                        'pysam', 'pyvcf', 'intervaltree', 'opencv-python-headless', 'beautifulsoup4'],
+
       scripts=['SVision'],
 
       )
