@@ -299,3 +299,4 @@ class Predict:
             write_results_to_vcf(out_vcf_file, out_score_file, region_potential_svtypes, last_region, read_num_name_pair, sig_types, sig_score_pair, predict_scores, sig_mechanisms_pair, options)
 
         out_vcf_file.close()
+        out_score_file.close()
