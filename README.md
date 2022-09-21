@@ -23,19 +23,24 @@ Please cite our paper "Lin, J., Wang, S., Audano, P.A. et al. SVision: a deep le
 * Ubuntu (V20.04, including Windows Subsystem for Linux)
 * CentOS Linux (V7.6.1810)
 
-### Pypi
+### From source
 
 ```
-## Create a conda environment for SVision
+## Get latest source code
+git clone https://github.com/xjtu-omics/SVision.git
+
+## Create a conda environment for SVision 
 conda create -n svisionenv python=3.6
 conda activate svisionenv
 
-## Install required dependencies with Pip
-numpy==1.16.4, scipy==1.5.4, tensorflow==1.14.0, opencv-python-headless, beautifulsoup4, intervaltree, pyvcf, pysam
+## Install OpenCV
+pip install opencv-python-headless
 
 ## Install SVision
-pip install SVision
+cd SVision
+python setup.py install
 ```
+
 
 ### Docker
 

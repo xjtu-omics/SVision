@@ -1,4 +1,3 @@
-
 FROM ubuntu:18.04
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -14,4 +13,3 @@ RUN git clone https://github.com/xjtu-omics/SVision.git \
     && pip3 install protobuf==3.13.0 \
     && pip3 install . \
     && cp -r ./SVision /usr/bin/
-
