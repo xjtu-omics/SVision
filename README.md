@@ -28,19 +28,12 @@ Please cite our paper "Lin, J., Wang, S., Audano, P.A. et al. SVision: a deep le
 ```
 ## Get latest source code
 git clone https://github.com/xjtu-omics/SVision.git
-
-## Create a conda environment for SVision 
-conda create -n svisionenv python=3.6
-conda activate svisionenv
-
-## Install OpenCV
-pip install opencv-python-headless
-
-## Install SVision
 cd SVision
+
+## Create conda environment and install SVision 
+conda env create -f environment.yml
 python setup.py install
 ```
-
 
 ### Docker
 
