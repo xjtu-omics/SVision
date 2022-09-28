@@ -3,6 +3,7 @@
 import sys
 import os
 import logging
+import numpy as np
 from time import strftime, localtime
 # for file in os.listdir(os.getcwd()):
 #     if os.path.isdir(file):
@@ -41,11 +42,13 @@ def parse_arguments(arguments = sys.argv[1:]):
     optional_params.add_argument('-s', dest="min_support", type=int, default=5, help='Minimum support read number required for SV calling (default: %(default)s)')
     optional_params.add_argument('-c', dest="chrom", type=str, default=None, help='Specific region (chr1:xxx-xxx) or chromosome (chr1) to detect')
 
+    optional_params.add_argument('-cn', dest="chrom_num", type=int, default=24, help='Chromosomes numbers of a species. (default: %(default)s, human chr1-chrY)')
+
     optional_params.add_argument('--hash', action="store_true", default=False,
                                  help='Activate local realignment for unmapped sequences (default: %(default)s)')
 
-    optional_params.add_argument('--cluster', action="store_true", default=False,
-                                 help='Cluster calls that might occur together (default: %(default)s)')
+    # optional_params.add_argument('--cluster', action="store_true", default=False,
+    #                              help='Cluster calls that might occur together (default: %(default)s)')
 
     optional_params.add_argument('--qname', action="store_true", default=False,
                                 help='Report support names for each events (default: %(default)s)')
@@ -55,6 +58,9 @@ def parse_arguments(arguments = sys.argv[1:]):
 
     optional_params.add_argument('--contig', action="store_true", default=False,
                                  help='Activate contig mode (default: %(default)s)')
+
+    optional_params.add_argument('--debug', action="store_true", default=False,
+                                 help='Activate debug mode and keep intermedia outputs (default: %(default)s)')
 
 
     # general_params.add_argument('--mechanism', action="store_true", default=False,
@@ -98,8 +104,6 @@ def parse_arguments(arguments = sys.argv[1:]):
                              help='Maximum length of unmapped sequence length for realignment (default: %(default)s)')
 
     options = parser.parse_args(arguments)
-
-
 
     return options
 
@@ -166,7 +170,7 @@ if __name__ == '__main__':
     ref_info = aln_file.get_index_statistics()
 
     ## v1.3.6 added to call from chr1 to chrY
-    all_possible_chrs = pysam.FastaFile(options.genome).references[0:24]
+    all_possible_chrs = pysam.FastaFile(options.genome).references[0: options.chrom_num]
 
     if options.chrom == None:
 
@@ -267,10 +271,8 @@ if __name__ == '__main__':
         if not os.path.exists(graph_out_path):
             os.mkdir(graph_out_path)
 
-    # # DEBUG code1: create out dir
-    # if os.path.exists(clusters_out_path):
-    #     shutil.rmtree(clusters_out_path)
-    # os.mkdir(clusters_out_path)
+    if options.contig:
+        options.min_support = 1
 
     logging.info('\n****************** Step1 Image coding and segmentation ******************')
     chrom_split_files = {}
@@ -295,80 +297,6 @@ if __name__ == '__main__':
 
     process_pool.close()
     process_pool.join()
-
-    '''    
-    ## Processing whole genomes or a given chromosome
-    if refine_flag == 0:
-        # traverse chroms to collect signatures and clusters
-        for chrom in chroms:
-            part_num = 0
-            # SVision v1.3.5 add. init chr split files. this step is to make sure that the out vcf is sorted by chrom and cords
-            if chrom not in chrom_split_files.keys():
-                chrom_split_files[chrom] = ""
-            # # END
-
-            ref_len = aln_file.get_reference_length(chrom)
-
-            if options.contig:
-                window_size = ref_len
-                run_collection.run_detect(options, sample_path, chrom, part_num, ref_len)
-                chrom_split_files[chrom] += os.path.join(segments_out_path, "{}.segments.{}.bed ".format(chrom, part_num))
-            else:
-
-                while True:
-                    if part_num * window_size > ref_len:
-                        break
-
-                    # SVision v1.3.5 add. init chr split files. this step is to make sure that the out vcf is sorted by chrom and cords
-                    chrom_split_files[chrom] += os.path.join(segments_out_path, "{}.segments.{}.bed ".format(chrom, part_num))
-                    # # END
-
-                    # SVision v1.0.3. MODIFY. more info to log out
-                    pool_rets.append([process_pool.apply_async(run_collection.run_detect, (options, sample_path, chrom, part_num, window_size)), chrom, part_num * window_size, (part_num + 1) * window_size])
-                    # run_collection.run_detect(options, sample_path, chrom, part_num, window_size)
-                    # End MODIFY
-
-                    part_num += 1
-
-    # Processing a given region smaller than the processing window size
-    else:
-        part_num = 0
-        chrom = chroms[0]
-        chrom_split_files[chrom] = os.path.join(segments_out_path, "{}.segments.{}.bed ".format(chrom, part_num))
-        pool_rets.append(
-            [process_pool.apply_async(run_collection.run_refine, (options, sample_path, chrom, start, end)),
-             chrom, start, end])
-
-    process_pool.close()
-    process_pool.join()
-    '''
-
-    '''
-    ## Will be removed in v1.3.6
-    # exit()
-    # # SVision v1.0.3. MODIFY. more info to log out
-    # Error Exception
-    # error_num = 0
-    # for ret in pool_rets:
-    #     ret_get = ret[0].get()
-    #     if ret_get is not None:
-    #         error_num += 1
-    #         # log_file.write('[Collecting Error]: at ' + ret[1] + '\t' + str(ret[2]) + '\t' + str(ret[3]) + '\n')
-    #         # log_file.write(ret_get + '\n')
-    #         logging.error('[Collecting Error]: at ' + ret[1] + '\t' + str(ret[2]) + '\t' + str(ret[3]) + '\n')
-    #         logging.error(ret_get + '\n')
-
-    # if error_num > 0:
-    #     logging.warning('{0} threads failed when collecting. See log.txt for More!'.format(error_num))
-    # # End MODIFY
-    
-    # merge splited files
-    # for chrom in chroms:
-    #     # merge splited beds
-    #     chr_segments_file = os.path.join(segments_out_path, chrom + ".segments.all.bed")
-    #     cmd_str = 'cat {} > {}'.format(chrom_split_files[chrom], chr_segments_file)
-    #     os.system(cmd_str)
-    '''
 
     ## v1.3.6 modified merging segment signature files
     for chrom in task_list_bychrom.keys():
@@ -413,32 +341,59 @@ if __name__ == '__main__':
     process_pool.join()
 
 
-    '''
-    ## Will be removed in v1.3.6
-    # # Modify. svision v1.1.2
-    error_num = 0
-    for ret in pool_rets:
-        ret_get = ret[0].get()
-        if ret_get is not None:
-            error_num += 1
-            # log_file.write('[Predicting Error]: at ' + ret[1] + '\n')
-            # log_file.write(ret_get + '\n')
-            logging.info('[Predicting Error]: at ' + ret[1] + '\n')
-            logging.info(ret_get + '\n')
-
-    if error_num > 0:
-        logging.warning('{0} threads failed when predicting. See log.txt for More!'.format(error_num))
-    '''
     end_time_predict = datetime.datetime.now()
     cost_time = (end_time_predict - end_time_collect).seconds
     logging.info("[Prediction finished]: Predicting types, Cost time: " + str(cost_time))
 
     # begin to score SV and merge chrom's results together
-    max_score, min_score = cal_scores_max_min(predict_results_dir)
-    merged_vcf_path = os.path.join(options.out_path, "{0}.svision.s{1}.vcf".format(options.sample, options.min_support))
+    all_scores = cal_scores_max_min(predict_results_dir)
 
-    # merge_split_vcfs(predict_results_dir, merged_vcf_path, max_score, min_score, chroms, options)
-    merge_split_vcfs(predict_results_dir, merged_vcf_path, max_score, min_score, list(task_list_bychrom.keys()), options)
+    try:
+        max_score, min_score = np.max(all_scores), np.min(all_scores)
+        merged_vcf_path = os.path.join(options.out_path,
+                                       "{0}.svision.s{1}.vcf".format(options.sample, options.min_support))
+
+        # merge_split_vcfs(predict_results_dir, merged_vcf_path, max_score, min_score, chroms, options)
+        merge_split_vcfs(predict_results_dir, merged_vcf_path, max_score, min_score, list(task_list_bychrom.keys()), options)
+
+        # # stats graphs file.
+        if options.graph:
+            logging.info('\n****************** Step3 Computing graphs ******************')
+            graph_out_path = os.path.join(options.out_path, 'graphs')
+            collect_csv_same_format(graph_out_path, merged_vcf_path, options)
+
+            # rm region folders
+            for file in os.listdir(graph_out_path):
+
+                file_path = os.path.join(graph_out_path, file)
+                if os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+
+            # # v1.3.5 add time consumption
+            end_time_graph = datetime.datetime.now()
+            cost_time = (end_time_graph - end_time_predict).seconds
+
+            os.remove(merged_vcf_path)
+            logging.info("[Graph creation finished] Generate graphs, Cost time: " + str(cost_time))
+
+        # rm tmp folder
+        # shutil.rmtree(clusters_out_path)
+
+        # log_file.close()
+
+        end_time_final = datetime.datetime.now()
+        cost_time = (end_time_final - start_time).seconds
+        logging.info("[All steps finished] Total Cost time: " + str(cost_time) + "s")
+
+        if not options.debug:
+            shutil.rmtree(segments_out_path)
+            shutil.rmtree(predict_results_dir)
+
+    except ValueError:
+        print('Empty output in the score file!!! Program exit')
+        exit()
+
+
 
     # the following: run repeatmasker and trf to annotate TE and VNTR, non use for current version, but in v2.0
     # # analyse mechanism
@@ -451,38 +406,8 @@ if __name__ == '__main__':
 
     # cluster original callset if required
 
-    if options.cluster:
-        logging.info("[Additional Func: cluster] Starting cluster original callset......")
-        cluster_out_file = os.path.join(work_dir, "{0}.svision.s{1}.clusterd.vcf".format(options.sample, options.min_support))
-        cluster_original_callset(merged_vcf_path, work_dir, sample_path, cluster_out_file)
+    # if options.cluster:
+    #     logging.info("[Additional Func: cluster] Starting cluster original callset......")
+    #     cluster_out_file = os.path.join(work_dir, "{0}.svision.s{1}.clusterd.vcf".format(options.sample, options.min_support))
+    #     cluster_original_callset(merged_vcf_path, work_dir, sample_path, cluster_out_file)
 
-    # # stats graphs file.
-    if options.graph:
-        logging.info('\n****************** Step3 Computing graphs ******************')
-        graph_out_path = os.path.join(options.out_path, 'graphs')
-        collect_csv_same_format(graph_out_path, merged_vcf_path, options)
-
-        # rm region folders
-        for file in os.listdir(graph_out_path):
-
-            file_path = os.path.join(graph_out_path, file)
-            if os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-
-        # # v1.3.5 add time consumption
-        end_time_graph = datetime.datetime.now()
-        cost_time = (end_time_graph - end_time_predict).seconds
-
-        os.remove(merged_vcf_path)
-        logging.info("[Graph creation finished] Generate graphs, Cost time: " + str(cost_time))
-
-    # rm tmp folder
-    # shutil.rmtree(clusters_out_path)
-    shutil.rmtree(segments_out_path)
-    shutil.rmtree(predict_results_dir)
-
-    # log_file.close()
-
-    end_time_final = datetime.datetime.now()
-    cost_time = (end_time_final - start_time).seconds
-    logging.info("[All steps finished] Total Cost time: " + str(cost_time) + "s")

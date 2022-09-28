@@ -124,7 +124,7 @@ def analyze_alignments(aligns, bam, options, part_num):
 
     min_mapq = 0 if options.contig is True else options.min_mapq
 
-    all_possible_chrs = pysam.FastaFile(options.genome).references[0:24]
+    all_possible_chrs = pysam.FastaFile(options.genome).references[0: options.chrom_num]
 
     # # collect reads's pm and sa
     reads_dict = {}
@@ -133,12 +133,14 @@ def analyze_alignments(aligns, bam, options, part_num):
         # # no cigar, then pass this align
         if align.cigarstring == None:
             continue
+
         # # unmapped or secondary or low mapping quality, then pass this align
         if align.is_unmapped or align.is_secondary or align.mapq < min_mapq:
             continue
 
         # # align to a ref that not in genome reference
         align_chr = align.reference_name
+
         if align_chr not in all_possible_chrs:
             logging.warning("{0} not in reference index file, skip this read".format(align_chr))
             continue
@@ -161,7 +163,6 @@ def analyze_alignments(aligns, bam, options, part_num):
     # traverse reads
     read_num = 0
     seg_signatures = []
-
     for qname in reads_dict.keys():
         # print('---------------------------', qname)
         # for align in reads_dict[qname]:
@@ -214,7 +215,7 @@ def analyze_alignments(aligns, bam, options, part_num):
 
             # # cigar process, Find indels and remove corresponding operations
             align_cigar_ops, align_cigar_lengths = cigar_to_list(seg_dict['cigarstring'])
-
+            # print(align_cigar_ops, align_cigar_lengths)
             # # analyze inside align, then we can get new major and minor segments
             major_segs_dicts, minor_segs_dicts = analyze_inside_align(seg_dict, align_cigar_ops, align_cigar_lengths, options)
 

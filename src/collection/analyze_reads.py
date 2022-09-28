@@ -852,6 +852,7 @@ def analyze_inside_align(seg_dict, cigar_ops, cigar_lengths, options):
         else:
             pass
 
+
     # no obvious gap, then return None
     if len(all_long_gaps) == 0:
         return None, None
@@ -946,6 +947,7 @@ def analyze_inside_align(seg_dict, cigar_ops, cigar_lengths, options):
                             }
         major_segs_dicts.append(new_seg_dict)
         # print(read_start, seg[0], seg[1], seg[1] - seg[0], len(new_seg_dict['read_seq']), 1)
+
     for seg in minor_segs_cords:
 
         new_seg_dict = {    'q_start': seg.xStart(),

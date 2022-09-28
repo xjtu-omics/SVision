@@ -34,6 +34,7 @@ def run_detect(options, sample_path, chrom, part_num, start, end):
         logging.info('Processing {0}:{1}-{2}, {3} segments write to: {4}'.format(chrom, start, end, len(sv_signatures), segment_out_file_name))
         # logging.info(f'Processing {chrom}:{start}-{end}, used memory: {psutil.virtual_memory().percent}')
 
+
         # # partition and clusters signatures to get cluster info
         clusters = partition_and_cluster(sv_signatures, fai_file, genome_file, chrom, sample_path, options)
         # # write cluster info to file

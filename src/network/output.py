@@ -333,7 +333,10 @@ def merge_split_vcfs(in_dir, merged_vcf_path, max_score, min_score, spec_chroms,
             # set SV score
             old_score = float(line_split[5])
 
-            new_score = int(100 - (round((old_score - min_score) / (max_score - min_score), 2) * 100))
+            new_score = 100
+            if max_score != min_score:
+                new_score = int(100 - (round((old_score - min_score) / (max_score - min_score), 2) * 100))
+
             # print(new_score)
             line_split[5] = str(new_score)
 
@@ -527,44 +530,14 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
             filter_type = 'Covered'
 
 
-        # final_svtypes = {}
-        # # # refine svtypes
-        # for i in range(len(all_sv_types)):
-        #     original_type = all_sv_types[i].split('+')
-        #
-        #     # # svision v1.2.1 Add.
-        #     # refine sv type
-        #     refined_type = refine_type(original_type, all_sv_bkps[i], options)
-        #
-        #     if refined_type not in final_svtypes.keys():
-        #         final_svtypes[refined_type] = [i]
-        #     else:
-        #         final_svtypes[refined_type].extend(i)
-        #
-        # print(final_svtypes)
-        #
-        # """"""""""""""""""""""""""""""""""""""""""""""""""done here
-        # # write each sv to file
-
         for i in range(len(all_sv_types)):
             # create INFO
-            svtype_info = "SVTYPE=" + all_sv_types[i]
+            # svtype_info = "SVTYPE=" + all_sv_types[i]
             svsupp_info = "SUPPORT=" + all_support_num[i]
             svbkps_info = "BKPS="
 
-            # v1.1.6. Add. v1.3.5 removed in the output
-            # if float(all_vaf[i]) > 1:
-            #     all_vaf[i] = '1'
-            # svvaf_info = "VAF=" + all_vaf[i]
-
-
             svsig_scores = all_sig_scores[i]
 
-            ## v1.3.5 removed
-            # mechanism_info = 'MECHANISM='
-            # mechanisms = all_mechanisms[i]
-            # most_mechanism = Counter(mechanisms).most_common(1)[0][0]
-            # mechanism_info += most_mechanism
 
             svreads_info = "READS="
             for j in range(len(all_support_reads[i])):
@@ -573,7 +546,6 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
                     svreads_info += read_name
                 else:
                     svreads_info += ',' + read_name
-
 
             # calculate sv score
             sv_score_std = np.std([int(score) for score in svsig_scores]) / int(all_support_num[i])
@@ -604,30 +576,12 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
             else:
                 new_type = '<SV>'
 
-            ## v1.3.5 added control qname output and ignore mechanism
-            # if options.mechanism:
-            #     info = "END={0};SVLEN={1};{2};{3};{4};{5};{6};{7}".format(end, length, svtype_info, svsupp_info, svbkps_info, svvaf_info, svreads_info, mechanism_info)
-            # else:
 
             if options.qname:
                 info = "END={0};SVLEN={1};{2};{3};{4};{5}".format(end, length, svtype_info, svsupp_info, svbkps_info, svreads_info)
             else:
                 info = "END={0};SVLEN={1};{2};{3};{4}".format(end, length, svtype_info, svsupp_info, svbkps_info)
             # End Add
-
-            # SVision v1.1.6, ADD. report GT
-            # vaf = float(all_vaf[i])
-            # if vaf > 0.8:
-            #     GT='1/1'
-            # elif vaf > 0.3:
-            #     GT = '0/1'
-            # elif vaf >= 0:
-            #     GT = '0/0'
-            # else:
-            #     GT = './.'
-            # DV = int(all_support_num[i])
-            # DR = round(DV / (vaf + 0.001)) - DV
-            # Add, End
 
             ## v1.3.5, ADD report GT
             candidate = (chr, start, end, refined_type)
@@ -655,10 +609,7 @@ def cal_scores_max_min(predict_path):
                     if line.strip() == '0':
                         continue
                     all_scores.append(float(line.strip()))
-
-
-
-    return np.max(all_scores), np.min(all_scores)
+    return all_scores
 
 
 def fetch_ref_seq(ref_path, chr, start, end):
