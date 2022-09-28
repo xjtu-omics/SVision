@@ -124,7 +124,7 @@ def analyze_alignments(aligns, bam, options, part_num):
 
     min_mapq = 0 if options.contig is True else options.min_mapq
 
-    all_possible_chrs = pysam.FastaFile(options.genome).references[0: options.chrom_num]
+    all_possible_chrs = pysam.FastaFile(options.genome).references
 
     # # collect reads's pm and sa
     reads_dict = {}

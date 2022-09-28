@@ -42,8 +42,6 @@ def parse_arguments(arguments = sys.argv[1:]):
     optional_params.add_argument('-s', dest="min_support", type=int, default=5, help='Minimum support read number required for SV calling (default: %(default)s)')
     optional_params.add_argument('-c', dest="chrom", type=str, default=None, help='Specific region (chr1:xxx-xxx) or chromosome (chr1) to detect')
 
-    optional_params.add_argument('-cn', dest="chrom_num", type=int, default=24, help='Chromosomes numbers of a species. (default: %(default)s, human chr1-chrY)')
-
     optional_params.add_argument('--hash', action="store_true", default=False,
                                  help='Activate local realignment for unmapped sequences (default: %(default)s)')
 
@@ -169,8 +167,7 @@ if __name__ == '__main__':
     task_list_bychrom = {}
     ref_info = aln_file.get_index_statistics()
 
-    ## v1.3.6 added to call from chr1 to chrY
-    all_possible_chrs = pysam.FastaFile(options.genome).references[0: options.chrom_num]
+    all_possible_chrs = pysam.FastaFile(options.genome).references
 
     if options.chrom == None:
 
