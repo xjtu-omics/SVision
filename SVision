@@ -158,11 +158,8 @@ if __name__ == '__main__':
 
     window_size = options.window_size
 
-    ## v1.3.6 removed parameters
-    # chroms need to be detected
-    # refine_flag = 0 # flag for processing a given region;
-    # start = 0
-    # end = 0
+    if options.contig:
+        options.min_support = 1
 
     task_list_bychrom = {}
     ref_info = aln_file.get_index_statistics()
@@ -171,13 +168,6 @@ if __name__ == '__main__':
 
     if options.chrom == None:
 
-        # chroms = []
-        # for line in ref_info:
-        #     mapped_num = line[1]
-        #     chrom = line[0]
-        #     if mapped_num >= options.min_support and chrom in all_possible_chrs:
-        #         chroms.append(chrom)
-
         ## V1.3.6 add for multiprocessing
         for ele in ref_info:
             chrom = ele[0]
@@ -185,6 +175,9 @@ if __name__ == '__main__':
 
             if chrom not in all_possible_chrs:
                 continue
+
+            if options.contig:
+                window_size = local_ref_len
 
             if local_ref_len < window_size:
                 if chrom in task_list_bychrom:
@@ -210,13 +203,7 @@ if __name__ == '__main__':
         ## End add
 
     else:
-
         chrom = options.chrom
-
-        # chroms = [str(region).split(':')[0]]
-        # cords = str(region).split(':')[1]
-        # start = int(cords.split('-')[0])
-        # end = int(cords.split('-')[1])
 
         ## V1.3.6 added for process a given chrom of region
         if chrom in all_possible_chrs:
@@ -268,8 +255,6 @@ if __name__ == '__main__':
         if not os.path.exists(graph_out_path):
             os.mkdir(graph_out_path)
 
-    if options.contig:
-        options.min_support = 1
 
     logging.info('\n****************** Step1 Image coding and segmentation ******************')
     chrom_split_files = {}
