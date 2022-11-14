@@ -93,6 +93,6 @@ SVision -o ./home/user/svision_out -b ./supports/HG00733.svision.demo.bam -m /ho
 ```
 
 ```
-docker run -v /local/path:/container/path jiadongxjtu/svision:latest -o /container/path/svision_out -b /container/path/HG00733.svision.demo.bam -m /container/path/svision_model/svision-cnn-model.ckpt -g /container/path/reference.fa -n HG00733 -s 5 --graph --qname
+docker run -v /local/path:/container/path jiadongxjtu/svision:latest SVision -o /container/path/svision_out -b /container/path/HG00733.svision.demo.bam -m /container/path/svision_model/svision-cnn-model.ckpt -g /container/path/reference.fa -n HG00733 -s 5 --graph --qname
 ```
 **REMINDER:** For Docker run, please put your BAM file, reference file and the pre-trained model under the /local/path.
