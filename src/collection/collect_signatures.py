@@ -124,7 +124,7 @@ def analyze_alignments(aligns, bam, options, part_num):
 
     min_mapq = 0 if options.contig is True else options.min_mapq
 
-    all_possible_chrs = pysam.FastaFile(options.genome).references
+    # all_possible_chrs = pysam.FastaFile(options.genome).references
 
     # # collect reads's pm and sa
     reads_dict = {}
@@ -139,11 +139,10 @@ def analyze_alignments(aligns, bam, options, part_num):
             continue
 
         # # align to a ref that not in genome reference
-        align_chr = align.reference_name
-
-        if align_chr not in all_possible_chrs:
-            logging.warning("{0} not in reference index file, skip this read".format(align_chr))
-            continue
+        # align_chr = align.reference_name
+        # if align_chr not in all_possible_chrs:
+        #     logging.warning("{0} not in reference index file, skip this read".format(align_chr))
+        #     continue
 
         align_ref_id = bam.get_tid(align.reference_name)
 
@@ -157,9 +156,6 @@ def analyze_alignments(aligns, bam, options, part_num):
 
     # print(f'Number of high-quality reads in window: {len(reads_dict)}')
 
-    black_regions = {'chr1': [(143184831, 143275233)], 'chr16': [(46377798, 46418333)]}
-    mapper = bam.header.get('PG')[0]['ID']
-
     # traverse reads
     read_num = 0
     seg_signatures = []
@@ -169,15 +165,6 @@ def analyze_alignments(aligns, bam, options, part_num):
         #     print(align.reference_start, align.reference_end, align.query_alignment_start, align.query_alignment_end, align.is_supplementary, align.is_reverse)
 
         this_qname_aligns = reads_dict[qname]
-        this_qname_chr = bam.get_reference_name(this_qname_aligns[0].reference_id)
-        filtered_query = False
-
-        ## Add V1.3.6, Handeling reads in two black regions for minimap2, enriched of SDs
-        if mapper == 'minimap2' and not options.contig and this_qname_chr in black_regions:
-            regions = black_regions[this_qname_chr]
-            filtered_query = filter_alignment_in(this_qname_aligns, regions)
-        if filtered_query:
-            continue
 
         ## End Add
 

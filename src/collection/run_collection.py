@@ -36,7 +36,7 @@ def run_detect(options, sample_path, chrom, part_num, start, end):
 
 
         # # partition and clusters signatures to get cluster info
-        clusters = partition_and_cluster(sv_signatures, fai_file, genome_file, chrom, sample_path, options)
+        clusters = partition_and_cluster(sv_signatures, chrom, sample_path, options)
         # # write cluster info to file
         writer_cluster_to_file(clusters, chrom, part_num, options)
 

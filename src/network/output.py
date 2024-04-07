@@ -227,7 +227,7 @@ def cluster_original_callset(callset_path, out_path, sample_path, cluster_out_fi
         if len(item_list) == 1:
             filter_type = 'Uncovered'
         else:
-            filter_type = 'Clustered'
+            filter_type = 'PASS'
 
         # convert to vcf format
         line = convert_to_vcf_format(new_cluster, sample_path, filter_type)
@@ -284,7 +284,7 @@ def merge_split_vcfs(in_dir, merged_vcf_path, max_score, min_score, spec_chroms,
     print("##INFO=<ID=SVLEN,Number=1,Type=Integer,Description=\"Difference in length between REF and ALT alleles\">", file=merged_vcf)
     print("##INFO=<ID=BKPS,Number=.,Type=String,Description=\"All breakpoints (length-start-end) in this region, where CSV might contain multiple breakpoints.\">", file=merged_vcf)
     print("##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"CNN predicted SV type, containing INS, DEL, DUP, tDUP (tandem duplication) and INV\">", file=merged_vcf)
-    print("##INFO=<ID=SUPPORT,Number=1,Type=String,Description=\"SV support number in this region\">", file=merged_vcf)
+    print("##INFO=<ID=SUPPORT,Number=1,Type=Integer,Description=\"SV support number in this region\">", file=merged_vcf)
     # print("##INFO=<ID=VAF,Number=1,Type=String,Description=\"SV allele frequency in this region\">", file=merged_vcf)
     print("##INFO=<ID=READS,Number=.,Type=String,Description=\"SV support read names in this region\">", file=merged_vcf)
 
@@ -527,7 +527,7 @@ def write_results_to_vcf(vcf_out, score_out, region_potential_svtypes, region, r
         if 'sigUncovered' in sig_type_stat.keys() and sig_type_stat['sigUncovered'] >= 0.75 * len(sig_types):
             filter_type = 'Uncovered'
         else:
-            filter_type = 'Covered'
+            filter_type = 'PASS'
 
 
         for i in range(len(all_sv_types)):

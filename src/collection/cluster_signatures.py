@@ -9,9 +9,9 @@ from scipy.cluster.hierarchy import linkage, fcluster
 from src.collection.classes import Cluster, read_fai_file
 
 
-def partition_and_cluster(signatures, fai_file, genome, chr, this_sample_path, options):
+def partition_and_cluster(signatures, chr, this_sample_path, options):
 
-    partitions = signature_partition(signatures, options.patition_max_distance)
+    partitions = signature_partition(signatures, options)
 
     # print(f'Number of partitions: {len(partitions)}')
 
@@ -20,7 +20,7 @@ def partition_and_cluster(signatures, fai_file, genome, chr, this_sample_path, o
     #     print(len(partition))
 
     # clusters = []
-    clusters = cluster_partitions(partitions, chr, fai_file, genome, this_sample_path, options)
+    clusters = cluster_partitions(partitions, chr, this_sample_path, options)
 
     # print(f'Number of clusters: {len(clusters)}')
 
@@ -48,24 +48,24 @@ def cluster_positions_simple(positions, max_delta):
 def distance_positions(position1, position2):
     return float("inf") if position1[0] != position2[0] else abs(position1[1] - position2[1])
 
-def signature_partition(signatures, max_distance):
+def signature_partition(signatures, options):
 
     sorted_signatures = sorted(signatures, key=lambda evi: evi.get_key())
     partitions = []
     current_partition = []
     for signature in sorted_signatures:
-        if len(current_partition) > 0 and current_partition[-1].position_distance_to(signature) > max_distance:
+        if len(current_partition) > options.min_support and current_partition[-1].position_distance_to(signature) > options.patition_max_distance:
             partitions.append(current_partition[:])
             current_partition = []
 
         current_partition.append(signature)
 
-    if len(current_partition) > 0:
+    if len(current_partition) > options.min_support:
         partitions.append(current_partition[:])
 
     return partitions
 
-def cluster_partitions(partitions, chrom, fai_file, genome, this_sample_path, options):
+def cluster_partitions(partitions, chrom, this_sample_path, options):
     '''
     Using hierarchical clustering to cluster signatures in each partition
     :param partitions:
