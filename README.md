@@ -1,10 +1,3 @@
-## Important Notes:
-   
-   We have moved to new developments of SVision, and the initial version will receive limited maintenance.
-   
-   Now we have released the pro version 'SVision-pro', which has demonstrated superior performance compared to SVision, for germline, denovo and somatic SV/CSV detection (go to https://github.com/xjtu-omics/SVision-pro.git or https://github.com/songbowang125/SVision-pro.git).
-   
-   We are also working on population-level SV detection using both long reads and assemblies, and will release these soon.
 
 ## SVision
 
